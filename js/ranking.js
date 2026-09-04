@@ -1,22 +1,23 @@
 /**
- * 랭킹 페이지 — data/ranking.json 하나만 읽어서 표를 그립니다.
+ * 랭킹 페이지 — 고른 종목의 랭킹 파일 하나만 읽어서 표를 그립니다.
  * (서버·DB 없이 정적 파일만으로 동작합니다)
+ *
+ * 종목은 js/config.js 의 GAMES 목록에서 옵니다. 종목을 늘릴 때 이 파일은
+ * 건드릴 필요가 없습니다 — 목록에 한 칸 추가하면 탭이 하나 늘어납니다.
  */
 
 let ALL = [];
 let SORT = "tier"; // tier | weekly | winrate | games
+let GAME = null;   // 지금 보고 있는 종목 (GAMES 의 한 칸)
 
 const $ = (sel) => document.querySelector(sel);
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-  document.title = `${SITE.name}`;
   $("#siteName").innerHTML = SITE.short.replace(/\s(\S+)$/, ' <span>$1</span>');
-  $("#pageDesc").textContent = SITE.description;
 
   fillSelect($("#fRegion"), REGIONS, "전체 지역");
-  fillSelect($("#fPosition"), POSITIONS, "전체 포지션");
 
   $("#q").addEventListener("input", render);
   $("#fRegion").addEventListener("change", render);
@@ -32,25 +33,129 @@ async function init() {
     });
   });
 
+  // 브라우저 뒤로/앞으로 가기도 종목 전환으로 이어지게 합니다.
+  window.addEventListener("popstate", () => {
+    const g = gameById(new URLSearchParams(location.search).get("game"));
+    if (g && g !== GAME) selectGame(g, { replace: true });
+  });
+
+  buildGameTabs();
+  await selectGame(startingGame(), { replace: true });
+}
+
+/** 처음 열 종목 — 주소의 ?game= 이 우선, 없으면 지난번에 보던 종목 */
+function startingGame() {
+  const asked = new URLSearchParams(location.search).get("game");
+  return gameById(asked) || gameById(readLastGame()) || defaultGame();
+}
+
+function readLastGame() {
+  // 브라우저가 저장을 막아둔 경우(시크릿 창 등)에도 페이지는 그대로 떠야 합니다.
+  try {
+    return localStorage.getItem("cnrank.game");
+  } catch (e) {
+    return null;
+  }
+}
+
+function rememberGame(id) {
+  try {
+    localStorage.setItem("cnrank.game", id);
+  } catch (e) {
+    /* 저장 못 해도 그만입니다 */
+  }
+}
+
+function buildGameTabs() {
+  const wrap = $("#gameTabs");
+  if (GAMES.length < 2) {
+    // 종목이 하나뿐이면 고를 것이 없으므로 줄 자체를 숨깁니다.
+    wrap.hidden = true;
+    return;
+  }
+  wrap.innerHTML = GAMES.map(
+    (g) => `<button type="button" data-game="${esc(g.id)}">
+      <span class="nm">${esc(g.name)}</span>${
+      g.status === "live" ? "" : '<span class="soon">준비 중</span>'
+    }</button>`
+  ).join("");
+  wrap.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("click", () => selectGame(gameById(b.dataset.game)));
+  });
+}
+
+/** 종목을 바꿉니다 (주소·저장·색·데이터까지 함께) */
+async function selectGame(game, { replace = false } = {}) {
+  GAME = game;
+  // 아직 열지 않은 종목은 기억하지 않습니다. 기억하면 다음 방문 때
+  // 볼 것이 없는 안내 화면으로 착지하게 됩니다.
+  if (game.status === "live") rememberGame(game.id);
+
+  document.querySelectorAll("#gameTabs button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.game === game.id);
+  });
+
+  // 종목마다 강조색을 바꿔, 지금 무엇을 보고 있는지 한눈에 들어오게 합니다.
+  document.documentElement.style.setProperty("--accent", game.accent);
+  document.documentElement.style.setProperty("--accent-hover", game.accentHover);
+
+  document.title = `${game.name} — ${SITE.name}`;
+  $("#pageTitle").textContent = `${SITE.name} · ${game.short}`;
+  $("#pageDesc").textContent = game.description;
+  $("#basis").textContent = game.basis;
+
+  // 포지션 목록도 종목마다 다릅니다.
+  fillSelect($("#fPosition"), game.positions, "전체 포지션");
+
+  // 주소에 남겨 두면 링크로 공유했을 때 같은 종목이 열립니다.
+  const url = new URL(location.href);
+  url.searchParams.set("game", game.id);
+  history[replace ? "replaceState" : "pushState"]({}, "", url);
+
+  await loadGame(game);
+}
+
+async function loadGame(game) {
+  if (game.status !== "live") {
+    showNotice(game);
+    return;
+  }
+
   // 주소 뒤에 ?sample 을 붙이면 예시 데이터로 화면을 미리 볼 수 있습니다.
-  const file = new URLSearchParams(location.search).has("sample")
-    ? "data/ranking.sample.json"
-    : "data/ranking.json";
+  const wantSample = new URLSearchParams(location.search).has("sample");
+  const file = (wantSample && game.sampleFile) || game.dataFile;
 
   try {
     const res = await fetch(`${file}?t=${Date.now()}`);
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
+    showTable();
     ALL = data.players || [];
     fillSummary(data);
     fillSelect($("#fTeam"), uniq(ALL.map((p) => p.team)), "전체 소속");
     render();
   } catch (e) {
+    ALL = [];
+    showTable();
     $("#tbody").innerHTML = "";
     $("#empty").textContent =
       "랭킹 데이터를 불러오지 못했습니다. (파일을 브라우저로 직접 열면 보안 정책상 차단됩니다 — start-server.bat으로 실행하세요)";
     $("#empty").style.display = "block";
   }
+}
+
+/** 아직 열지 않은 종목 — 표 대신 안내를 보여줍니다 */
+function showNotice(game) {
+  const n = game.notice || {};
+  $("#noticeTitle").textContent = n.title || `${game.name}은 아직 준비 중입니다`;
+  $("#noticeBody").innerHTML = (n.body || []).map((t) => `<p>${esc(t)}</p>`).join("");
+  $("#gameNotice").hidden = false;
+  $("#liveArea").hidden = true;
+}
+
+function showTable() {
+  $("#gameNotice").hidden = true;
+  $("#liveArea").hidden = false;
 }
 
 function uniq(arr) {
@@ -74,22 +179,13 @@ function fillSummary(data) {
   const avg = ranked.length
     ? Math.round(ranked.reduce((s, p) => s + p.score, 0) / ranked.length)
     : null;
-  $("#sAvg").textContent = avg === null ? "-" : scoreToLabel(avg);
+  // 점수를 티어로 되돌리는 방법은 종목마다 다릅니다 (config.js 의 avgLabel).
+  $("#sAvg").textContent =
+    avg === null || !GAME.avgLabel ? "-" : GAME.avgLabel(avg);
 
   $("#updated").textContent = data.updatedAt
     ? `마지막 갱신: ${fmtTime(data.updatedAt)} (매일 오전 4시 자동 갱신)`
     : "아직 갱신 기록이 없습니다.";
-}
-
-/** 평균 점수를 다시 티어 문자열로 (요약용) */
-function scoreToLabel(score) {
-  const tiers = ["IRON","BRONZE","SILVER","GOLD","PLATINUM","EMERALD","DIAMOND"];
-  const divs = ["IV","III","II","I"];
-  if (score >= 2800) return `마스터+ ${score - 2800}LP`;
-  const t = Math.min(Math.floor(score / 400), tiers.length - 1);
-  const rest = score - t * 400;
-  const d = Math.min(Math.floor(rest / 100), 3);
-  return `${TIER_INFO[tiers[t]].ko} ${divs[d]}`;
 }
 
 function fmtTime(iso) {
@@ -153,14 +249,14 @@ function render() {
 function row(p, i) {
   const no = SORT === "tier" ? p.rank : i + 1;
   const noClass = no === 1 ? "top1" : no === 2 ? "top2" : no === 3 ? "top3" : "";
-  const info = p.tier ? TIER_INFO[p.tier] : null;
+  const info = (p.tier && GAME.tiers[p.tier]) || null;
 
   const icon = p.profileIconId
     ? `<img src="${profileIconUrl(p.profileIconId)}" alt="" loading="lazy"
            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'noimg'}))">`
     : `<div class="noimg"></div>`;
 
-  const tierCell = p.tier
+  const tierCell = info
     ? `<div class="tier"><span class="dot" style="background:${info.color}"></span>
          <span>${esc(p.label)}</span></div>`
     : `<div class="tier"><span class="dot" style="background:#444"></span>
