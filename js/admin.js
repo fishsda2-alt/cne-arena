@@ -41,8 +41,10 @@ async function init() {
 /**
  * 누적 방문 — GoatCounter 의 공개 카운터에서 읽습니다.
  *
- * 설정이 없거나 공개가 꺼져 있으면 숫자 대신 안내를 보여줍니다.
- * 집계 자체는 공개와 무관하게 돌아가고, 이 숫자만 못 읽습니다.
+ * 사이트 설정의 "Allow adding visitor counts on your website" 를 켜야 열립니다.
+ * 합계(TOTAL)는 GoatCounter가 따로 집계하는 값이라 방금 생긴 방문은 한동안
+ * 0으로 나옵니다. 그래서 0이면 숫자 대신 대시보드 링크를 보여줍니다 —
+ * 실제로는 방문이 있는데 0이라고 적으면 그게 더 나쁜 거짓말이기 때문입니다.
  */
 async function loadVisits() {
   const code = SITE.goatcounter;
@@ -54,16 +56,25 @@ async function loadVisits() {
   }
 
   const dash = `https://${code}.goatcounter.com`;
+  const link = (t, tip) => {
+    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">${esc(t)}</a>`;
+    box.title = tip;
+  };
+
   try {
     const res = await fetch(`${dash}/counter/TOTAL.json`);
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    const n = data.count_unique || data.count;
-    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">${esc(n)}</a>`;
+    const n = Number(String(data.count_unique || data.count || "0").replace(/,/g, ""));
+    if (!n) {
+      link("대시보드", "합계는 GoatCounter가 나중에 집계합니다. 그때까지는 대시보드에서 보세요.");
+      return;
+    }
+    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">${esc(n.toLocaleString("ko-KR"))}</a>`;
+    box.title = "GoatCounter 누적 방문 (고유 방문자)";
   } catch (e) {
-    // 카운터 공개가 꺼져 있으면 여기로 옵니다. 대시보드 링크만 걸어 둡니다.
-    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">대시보드</a>`;
-    box.title = "숫자를 여기 표시하려면 GoatCounter 설정에서 카운터 공개를 켜세요.";
+    // 카운터 공개가 꺼져 있으면 여기로 옵니다.
+    link("대시보드", "숫자를 여기 표시하려면 GoatCounter 설정에서 카운터 공개를 켜세요.");
   }
 }
 
