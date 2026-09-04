@@ -1,5 +1,20 @@
 {
   "_사용법": "이 파일은 직접 고치지 말고 Actions 탭의 '선수 등록' / '선수 관리' 워크플로로 관리하세요. approved=false 인 선수는 랭킹에 나오지 않습니다.",
-  "updatedAt": "",
-  "players": []
+  "updatedAt": "2026-09-04T20:35:27+09:00",
+  "players": [
+    {
+      "id": "p001",
+      "name": "test3",
+      "gameName": "Yeunsb",
+      "tagLine": "KR1",
+      "puuid": "DhrxtS6NV37EfcE_a2MPPkjV7wVbabYdf92UzxWy6MtONL0k1aiStuq1qsnDmT21OpQzKQ6FEBHlVw",
+      "team": "",
+      "region": "천안",
+      "position": "정글",
+      "proAspirant": false,
+      "approved": true,
+      "verified": true,
+      "registeredAt": "2026-09-04"
+    }
+  ]
 }
