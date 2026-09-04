@@ -34,6 +34,13 @@ async function init() {
     if (g && g !== GAME) selectGame(g, { replace: true });
   });
 
+  // 상세 모달 닫기 (X · 바깥 클릭 · Esc)
+  $("#pClose").addEventListener("click", closePlayer);
+  $("#pBack").addEventListener("click", closePlayer);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("#pModal").hidden) closePlayer();
+  });
+
   buildGameTabs();
   await selectGame(startingGame(), { replace: true });
 }
@@ -143,6 +150,10 @@ async function loadGame(game) {
     drawDistribution();
     fillSelect($("#fTeam"), uniq(ALL.map((p) => p.team)), "전체 소속");
     render();
+    // 링크에 선수가 지정돼 있으면 그 선수를 열어 둡니다 (공유용).
+    const asked = new URLSearchParams(location.search).get("player");
+    const found = asked && ALL.find((p) => p.id === asked);
+    if (found) openPlayer(found);
   } catch (e) {
     ALL = [];
     showTable();
@@ -293,6 +304,12 @@ function render() {
   }
   $("#empty").style.display = "none";
   $("#tbody").innerHTML = rows.map((p, i) => row(p, i)).join("");
+  $("#tbody").querySelectorAll("tr[data-id]").forEach((tr) => {
+    tr.addEventListener("click", () => {
+      const p = ALL.find((x) => x.id === tr.dataset.id);
+      if (p) openPlayer(p);
+    });
+  });
 }
 
 function row(p, i) {
@@ -325,7 +342,7 @@ function row(p, i) {
     ? `<span class="wr ${p.winRate >= 55 ? "hi" : p.winRate < 45 ? "lo" : ""}">${p.winRate}%</span>`
     : `<span class="wr" style="color:var(--text-dim)">-</span>`;
 
-  return `<tr>
+  return `<tr class="clickable" data-id="${esc(p.id)}">
     <td class="rank-no ${noClass}">${no ?? "-"}</td>
     <td>
       <div class="player">

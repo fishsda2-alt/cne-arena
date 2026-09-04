@@ -57,6 +57,7 @@ cnrank/
 │   ├── remove.js            삭제 폼 — 범위 선택 + 3중 확인
 │   ├── admin.js             운영 현황 — 집계·명단·관리 동작
 │   ├── analytics.js         방문 집계 (설정했을 때만 켜짐)
+│   ├── detail.js            선수 상세 + 티어 변동 그래프 (라이브러리 없이 SVG)
 │   └── ranking.js           랭킹표 렌더링
 ├── scripts/                 (GitHub Actions가 실행, 외부 패키지 0개)
 │   ├── riot.py              API 클라이언트 + 요청 한도 제어
@@ -76,6 +77,7 @@ cnrank/
 │   ├── players.json         등록 선수 명단 (워크플로가 관리)
 │   ├── ranking.json         자동 생성 — 사이트가 읽는 유일한 파일
 │   ├── ranking.sample.json  API 키 없이 화면만 보고 싶을 때 쓰는 예시
+│   ├── history.sample.json  ?sample 에서 티어 변동 그래프를 보여주기 위한 예시 기록
 │   └── history/YYYY-MM.json 일별 스냅샷 (주간 상승폭 계산용)
 ├── .github/workflows/
 │   ├── update-ranking.yml     매일 04:10 자동 갱신
