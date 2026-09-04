@@ -90,6 +90,8 @@ async function selectGame(game) {
 
   const wantSample = new URLSearchParams(location.search).has("sample");
   const file = (wantSample && game.sampleFile) || game.dataFile;
+  // 예시 데이터를 보고 있으면 반드시 그렇다고 밝힙니다.
+  $("#sampleBar").hidden = !wantSample;
   try {
     const res = await fetch(`${file}?t=${Date.now()}`);
     if (!res.ok) throw new Error(res.status);

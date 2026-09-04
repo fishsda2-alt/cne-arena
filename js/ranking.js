@@ -146,6 +146,11 @@ async function loadGame(game) {
     const data = await res.json();
     showTable();
     ALL = data.players || [];
+    // 예시 데이터를 보고 있으면 반드시 그렇다고 밝힙니다. 표시가 없으면
+    // 처음 온 사람이 실제 등록 선수로 오해합니다.
+    $("#sampleBar").hidden = !wantSample;
+    // 선수가 적을 때는 빈 표만 두지 않고 무슨 곳인지 먼저 설명합니다.
+    $("#introCard").hidden = wantSample || ALL.length >= 5;
     fillSummary(data);
     drawDistribution();
     fillSelect($("#fTeam"), uniq(ALL.map((p) => p.team)), "전체 소속");
@@ -157,6 +162,8 @@ async function loadGame(game) {
   } catch (e) {
     ALL = [];
     showTable();
+    $("#sampleBar").hidden = true;
+    $("#introCard").hidden = true;
     $("#tbody").innerHTML = "";
     $("#empty").textContent =
       "랭킹 데이터를 불러오지 못했습니다. (파일을 브라우저로 직접 열면 보안 정책상 차단됩니다 — start-server.bat으로 실행하세요)";
