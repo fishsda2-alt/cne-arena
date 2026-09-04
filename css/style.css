@@ -486,6 +486,10 @@ body:not(.manage) .manage-only { display: none !important; }
   .bar { grid-template-columns: 70px 1fr 32px; }
 }
 
+.footer-contact { margin-top: 10px; font-size: 0.86rem; }
+.footer-contact a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.footer-contact a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
 .site-footer {
   border-top: 1px solid var(--border); padding: 20px 0;
   color: var(--text-dim); font-size: 0.85rem; text-align: center;
