@@ -16,7 +16,7 @@ const SITE = {
   //    개인정보를 다루게 되고, 미성년 선수가 섞여 있어 위험합니다.
   //  · **만료되지 않는 초대 링크**로 만드세요 (기본값은 7일 뒤 끊깁니다).
   //  · 비워두면 관련 안내가 화면에 나오지 않습니다.
-  discordUrl: "",
+  discordUrl: "https://discord.gg/vgKajq2gGC",
   // 방문 집계 (GoatCounter) — goatcounter.com 에서 만든 코드만 적습니다.
   //   예) 주소가 https://cnrank.goatcounter.com 이면  "cnrank"
   //  · 비워두면 집계 스크립트를 아예 불러오지 않습니다 (요청도 나가지 않습니다).
