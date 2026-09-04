@@ -2,6 +2,11 @@ name: 선수 등록
 
 # Actions 탭 > "선수 등록" > Run workflow 에서 신청 내용을 입력하면
 # 아이콘 인증 → puuid 변환 → data/players.json 커밋까지 자동으로 끝납니다.
+#
+# ⚠ 실명·연락처·이메일·생년월일은 절대 입력하지 마세요.
+#   여기 입력한 값은 공개 저장소의 실행 기록에 그대로 남아 누구나 볼 수 있습니다.
+#   프로 트라이아웃 신청자의 개인정보는 구글 드라이브 명단에서만 관리하고,
+#   여기서는 "프로 지망" 체크만 켜세요.
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +14,7 @@ on:
         description: "Riot ID (예: 홍길동#KR1)"
         required: true
       name:
-        description: "표시 이름 (비우면 게임 닉네임)"
+        description: "랭킹에 표시할 닉네임 (비우면 게임 닉네임) — 실명 금지"
         required: false
       team:
         description: "소속 (학교/팀)"
@@ -20,6 +25,10 @@ on:
       position:
         description: "주 포지션 (탑/정글/미드/원딜/서포터)"
         required: false
+      pro_aspirant:
+        description: "프로 트라이아웃 희망 (랭킹에 ★ 표시)"
+        type: boolean
+        default: false
       skip_verify:
         description: "아이콘 인증 생략 (오프라인 본인확인 완료 시)"
         type: boolean
@@ -62,6 +71,7 @@ jobs:
             --team "$IN_TEAM" \
             --region "$IN_REGION" \
             --position "$IN_POSITION" \
+            ${{ inputs.pro_aspirant && '--pro' || '' }} \
             ${{ inputs.skip_verify && '--skip-verify' || '' }} \
             ${{ inputs.approve && ' ' || '--no-approve' }}
 

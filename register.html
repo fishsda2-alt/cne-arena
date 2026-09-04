@@ -61,31 +61,82 @@
 
     <section class="card">
       <h2>3단계 · 등록 신청</h2>
-      <p>아래 항목을 신청서에 적어 보내주세요. 운영자가 아이콘을 확인한 뒤 승인합니다.</p>
+      <p>아래 항목만 적어 보내주세요. <strong>실명·연락처는 적지 않습니다.</strong></p>
       <ul style="margin-top:8px">
         <li>Riot ID (예: 홍길동#KR1)</li>
-        <li>표시할 이름 (실명 또는 활동명)</li>
-        <li>소속 (학교 / 팀 / 클럽)</li>
+        <li><strong>랭킹에 표시할 닉네임</strong> — 본인이 원하는 대로 정하세요</li>
         <li>지역 (천안, 아산, 공주 …)</li>
         <li>주 포지션</li>
+        <li>소속 (학교 / 팀 / 클럽) — 충남 소재 확인용, 선택</li>
       </ul>
-      <p style="margin-top:14px" id="applyBox">
+      <p style="margin-top:14px">
         <a class="btn" id="applyBtn" href="#">신청서 작성하기</a>
       </p>
+      <div class="notice">
+        <strong>티어는 적지 않습니다.</strong> 등록되면 Riot 서버에서 매일 새벽 자동으로 가져와
+        채웁니다. 승급하거나 강등되면 다음 날 랭킹에 저절로 반영됩니다.
+      </div>
       <div class="notice">
         <strong>승인 기준:</strong> 충남 소재 학교·팀 소속이거나 충남 거주 아마추어 선수여야 합니다.
         프로게이머 및 프로팀 소속 연습생은 등록할 수 없습니다.
       </div>
     </section>
 
+    <section class="card" id="proCard">
+      <h2>선택 · 프로 트라이아웃 희망 신청 <span class="star">★</span></h2>
+      <p>
+        프로게임단 트라이아웃을 목표로 하는 선수는 추가로 신청할 수 있습니다.
+        승인되면 랭킹표의 닉네임 옆에 <span class="star">★</span> 가 붙어,
+        구단·관계자가 지역 유망주를 찾을 때 눈에 띄게 됩니다.
+      </p>
+
+      <h3>추가로 받는 정보</h3>
+      <ul>
+        <li>이름 (실명)</li>
+        <li>연락처</li>
+        <li>이메일</li>
+      </ul>
+
+      <div class="notice">
+        <strong>이 정보는 사이트에 공개되지 않습니다.</strong>
+        랭킹표에는 <span class="star">★</span> 표시만 나오고, 실명·연락처·이메일은
+        운영자만 볼 수 있는 별도 명단에 보관합니다.
+        구단이 문의해 오면 <strong>본인에게 먼저 확인한 뒤에만</strong> 전달합니다.
+      </div>
+
+      <p style="margin-top:14px">
+        <a class="btn" id="proBtn" href="#">프로 지망 신청하기</a>
+      </p>
+      <p style="margin-top:10px; color:var(--text-dim); font-size:0.88rem">
+        일반 등록(3단계)을 먼저 마친 뒤에 신청해 주세요. 신청은 언제든 취소할 수 있고,
+        취소하면 <span class="star">★</span> 표시와 보관된 연락처를 모두 지웁니다.
+      </p>
+    </section>
+
     <section class="card">
       <h2>개인정보 안내</h2>
+
+      <h3>모든 선수 (일반 등록)</h3>
       <ul>
-        <li>공개되는 정보: 표시 이름, Riot ID, 소속, 지역, 포지션, 티어·전적</li>
+        <li>공개되는 정보: 표시 닉네임, Riot ID, 소속, 지역, 포지션, 티어·전적</li>
         <li>수집 목적: 지역 아마추어 랭킹 집계 및 공개</li>
+        <li>실명·연락처·생년월일은 <strong>받지 않습니다</strong></li>
+      </ul>
+
+      <h3>프로 지망 신청자만</h3>
+      <ul>
+        <li>추가 수집: 이름, 연락처, 이메일</li>
+        <li>수집 목적: 프로게임단 트라이아웃 연계 시 본인 확인 및 연락</li>
+        <li>공개 범위: <strong>비공개</strong> — 사이트에는 ★ 표시만 나옵니다</li>
+        <li>제3자 제공: 본인이 동의한 건에 한해, 그때마다 확인 후 전달</li>
+      </ul>
+
+      <h3>공통</h3>
+      <ul>
         <li>보관 기간: 삭제를 요청할 때까지</li>
         <li><strong>만 14세 미만</strong>은 보호자 동의가 필요합니다.</li>
-        <li>삭제를 원하면 <span id="contact"></span>로 Riot ID를 알려주세요. 랭킹·기록에서 즉시 지웁니다.</li>
+        <li>삭제를 원하면 <span id="contact"></span>로 Riot ID를 알려주세요.
+            랭킹·기록·연락처 명단에서 모두 지웁니다.</li>
       </ul>
     </section>
   </div>
@@ -103,15 +154,25 @@
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("contact").textContent = SITE.contact;
 
-  const applyBtn = document.getElementById("applyBtn");
-  if (SITE.formUrl) {
-    applyBtn.href = SITE.formUrl;
-    applyBtn.target = "_blank";
-    applyBtn.rel = "noopener";
-  } else {
-    applyBtn.href = `mailto:${SITE.contact}?subject=${encodeURIComponent("[랭킹] 선수 등록 신청")}`;
-    applyBtn.textContent = "이메일로 신청하기";
+  // 구글 폼 주소가 config.js에 없으면 이메일 신청으로 대체합니다.
+  function wireApplyButton(el, formUrl, subject, fallbackLabel) {
+    if (formUrl) {
+      el.href = formUrl;
+      el.target = "_blank";
+      el.rel = "noopener";
+    } else {
+      el.href = `mailto:${SITE.contact}?subject=${encodeURIComponent(subject)}`;
+      el.textContent = fallbackLabel;
+    }
   }
+  wireApplyButton(
+    document.getElementById("applyBtn"), SITE.formUrl,
+    "[랭킹] 선수 등록 신청", "이메일로 신청하기"
+  );
+  wireApplyButton(
+    document.getElementById("proBtn"), SITE.proFormUrl,
+    "[랭킹] 프로 트라이아웃 희망 신청", "이메일로 프로 지망 신청하기"
+  );
 
   const input = document.getElementById("riotId");
   const hint = document.getElementById("hint");

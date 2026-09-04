@@ -1,17 +1,30 @@
-name: 선수 관리 (승인/보류/삭제)
+name: 선수 관리 (승인/보류/수정/삭제)
 
+# ⚠ 실명·연락처·이메일은 절대 입력하지 마세요. 실행 기록이 공개됩니다.
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: "작업"
+        description: "작업 (pro=★켜기, unpro=★끄기, edit=프로필 수정)"
         type: choice
         required: true
-        options: [approve, hold, remove]
+        options: [approve, hold, pro, unpro, edit, remove]
         default: approve
       who:
         description: "선수 ID(p001) 또는 Riot ID(홍길동#KR1)"
         required: true
+      name:
+        description: "[edit] 새 표시 닉네임 — 실명 금지"
+        required: false
+      team:
+        description: "[edit] 새 소속"
+        required: false
+      region:
+        description: "[edit] 새 지역"
+        required: false
+      position:
+        description: "[edit] 새 주 포지션"
+        required: false
 
 concurrency:
   group: ranking-data
@@ -33,7 +46,17 @@ jobs:
       - name: 처리
         env:
           IN_WHO: ${{ inputs.who }}
-        run: python scripts/manage_player.py "${{ inputs.action }}" --who "$IN_WHO"
+          IN_NAME: ${{ inputs.name }}
+          IN_TEAM: ${{ inputs.team }}
+          IN_REGION: ${{ inputs.region }}
+          IN_POSITION: ${{ inputs.position }}
+        run: |
+          python scripts/manage_player.py "${{ inputs.action }}" \
+            --who "$IN_WHO" \
+            --name "$IN_NAME" \
+            --team "$IN_TEAM" \
+            --region "$IN_REGION" \
+            --position "$IN_POSITION"
 
       - name: 커밋
         env:

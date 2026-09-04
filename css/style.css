@@ -136,6 +136,12 @@ tbody tr:hover { background: rgba(79, 140, 255, 0.06); }
 .wr.hi { color: var(--up); }
 .wr.lo { color: var(--down); }
 
+/* 프로 트라이아웃 희망 선수 표시 */
+.star {
+  color: var(--gold); margin-left: 4px; font-size: 0.95em;
+  text-shadow: 0 0 6px rgba(213, 165, 74, 0.5); cursor: help;
+}
+
 .badge {
   display: inline-block; font-size: 0.72rem; padding: 1px 7px;
   border-radius: 999px; border: 1px solid var(--border);

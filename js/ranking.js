@@ -22,6 +22,7 @@ async function init() {
   $("#fRegion").addEventListener("change", render);
   $("#fPosition").addEventListener("change", render);
   $("#fTeam").addEventListener("change", render);
+  $("#fPro").addEventListener("change", render);
   document.querySelectorAll(".tabs button").forEach((b) => {
     b.addEventListener("click", () => {
       document.querySelectorAll(".tabs button").forEach((x) => x.classList.remove("active"));
@@ -64,6 +65,7 @@ function fillSelect(sel, items, allLabel) {
 function fillSummary(data) {
   $("#sTotal").textContent = `${data.playerCount || 0}명`;
   $("#sRanked").textContent = `${data.rankedCount || 0}명`;
+  $("#sPro").textContent = `${(data.players || []).filter((p) => p.proAspirant).length}명`;
 
   const top = (data.players || []).find((p) => p.score !== null);
   $("#sTop").textContent = top ? `${top.name} · ${top.label}` : "-";
@@ -107,11 +109,13 @@ function render() {
   const region = $("#fRegion").value;
   const position = $("#fPosition").value;
   const team = $("#fTeam").value;
+  const proOnly = $("#fPro").value === "pro";
 
   let rows = ALL.filter((p) => {
     if (region && p.region !== region) return false;
     if (position && p.position !== position) return false;
     if (team && p.team !== team) return false;
+    if (proOnly && !p.proAspirant) return false;
     if (q) {
       const hay = `${p.name} ${p.gameName}#${p.tagLine} ${p.team}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -177,7 +181,9 @@ function row(p, i) {
       <div class="player">
         ${icon}
         <div class="who">
-          <span class="nm">${esc(p.name)}${p.hotStreak ? '<span class="badge hot">연승</span>' : ""}${
+          <span class="nm">${esc(p.name)}${
+            p.proAspirant ? '<span class="star" title="프로 트라이아웃 희망 선수">★</span>' : ""
+          }${p.hotStreak ? '<span class="badge hot">연승</span>' : ""}${
             p.stale ? '<span class="badge stale">갱신실패</span>' : ""
           }</span>
           <span class="id">${esc(p.gameName)}#${esc(p.tagLine)}</span>

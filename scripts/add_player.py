@@ -53,10 +53,11 @@ def next_id(players):
 def main():
     ap = argparse.ArgumentParser(description="충남 아마추어 랭킹 - 선수 등록")
     ap.add_argument("--riot-id", required=True, help='예: "홍길동#KR1"')
-    ap.add_argument("--name", default="", help="표시 이름 (비우면 게임 닉네임 사용)")
+    ap.add_argument("--name", default="", help="랭킹에 표시할 닉네임 (비우면 게임 닉네임 사용)")
     ap.add_argument("--team", default="", help="소속 (학교/팀/클럽)")
     ap.add_argument("--region", default="", help="지역 (예: 천안, 아산)")
     ap.add_argument("--position", default="", help="주 포지션")
+    ap.add_argument("--pro", action="store_true", help="프로 트라이아웃 희망 선수 (랭킹에 ★ 표시)")
     ap.add_argument("--skip-verify", action="store_true", help="아이콘 인증 생략")
     ap.add_argument("--no-approve", action="store_true", help="승인 대기 상태로 등록")
     args = ap.parse_args()
@@ -114,6 +115,7 @@ def main():
         "team": args.team.strip(),
         "region": args.region.strip(),
         "position": args.position.strip(),
+        "proAspirant": args.pro,
         "approved": not args.no_approve,
         "verified": not args.skip_verify,
         "registeredAt": datetime.now(KST).date().isoformat(),
@@ -122,7 +124,11 @@ def main():
     save_players(data)
 
     state = "승인 완료" if player["approved"] else "승인 대기"
-    print(f"등록됨: {player['id']} · {player['name']} ({game_name}#{tag_line}) · {state}")
+    star = " ★프로지망" if args.pro else ""
+    print(f"등록됨: {player['id']} · {player['name']}{star} ({game_name}#{tag_line}) · {state}")
+    if args.pro:
+        print("      ※ 실명·연락처·이메일은 저장소에 저장하지 않았습니다.")
+        print("         트라이아웃 연락처는 구글 드라이브 명단에서만 관리하세요.")
     return 0
 
 

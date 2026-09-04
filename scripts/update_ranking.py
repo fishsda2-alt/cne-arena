@@ -59,6 +59,9 @@ def build_entry(player, api, previous):
         "position": player.get("position", ""),
         "gameName": player["gameName"],
         "tagLine": player["tagLine"],
+        # 프로 트라이아웃 희망 선수 (랭킹표에 ★ 표시).
+        # 실명·연락처·이메일은 저장소에 저장하지 않습니다 — 이 플래그만 공개됩니다.
+        "proAspirant": bool(player.get("proAspirant")),
     }
 
     league = api.league_entries_by_puuid(player["puuid"])

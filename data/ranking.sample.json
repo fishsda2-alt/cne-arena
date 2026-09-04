@@ -8,6 +8,7 @@
     {
       "id": "p001", "name": "김도현", "team": "천안공고 e스포츠부", "region": "천안", "position": "미드",
       "gameName": "천안의별", "tagLine": "KR1", "profileIconId": 6202, "summonerLevel": 412,
+      "proAspirant": true,
       "tier": "DIAMOND", "division": "II", "lp": 68, "wins": 143, "losses": 121, "games": 264,
       "winRate": 54.2, "hotStreak": true, "inactive": false, "score": 2568,
       "label": "다이아몬드 II 68LP", "flex": { "tier": "PLATINUM", "division": "I", "lp": 24, "label": "플래티넘 I 24LP" },
@@ -48,6 +49,7 @@
     {
       "id": "p006", "name": "한지우", "team": "당진고 e스포츠부", "region": "당진", "position": "미드",
       "gameName": "당진미드", "tagLine": "KR3", "profileIconId": 907, "summonerLevel": 88,
+      "proAspirant": true,
       "tier": "GOLD", "division": "I", "lp": 32, "wins": 30, "losses": 24, "games": 54,
       "winRate": 55.6, "hotStreak": true, "inactive": false, "score": 1532,
       "label": "골드 I 32LP", "flex": null,
