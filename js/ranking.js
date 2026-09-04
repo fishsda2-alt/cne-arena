@@ -127,6 +127,8 @@ async function selectGame(game, { replace = false } = {}) {
   url.searchParams.set("game", game.id);
   history[replace ? "replaceState" : "pushState"]({}, "", url);
 
+  loadEvents(game.id);
+  renderDiscord("#discordBar");
   await loadGame(game);
 }
 

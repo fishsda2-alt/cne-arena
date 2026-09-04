@@ -123,6 +123,61 @@ main { flex: 1; padding: 30px 0 60px; }
 .tabs button:hover { color: var(--text); }
 .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 
+/* 소속 랭킹 — 펼친 팀원 목록 */
+#tbody tr.clickable .more {
+  color: var(--text-dim); font-size: 0.78rem; margin-left: 8px; opacity: 0; transition: opacity .15s;
+}
+#tbody tr.clickable:hover .more, #tbody tr.clickable.open .more { opacity: 1; }
+#tbody tr.clickable.open .more::after { content: " 접기"; }
+#tbody tr.clickable.open .more { font-size: 0; }
+#tbody tr.clickable.open .more::after { font-size: 0.78rem; }
+tr.roster td { background: var(--bg); padding: 10px 12px; }
+.roster-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.rm {
+  display: flex; align-items: center; gap: 8px; text-decoration: none;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 11px; color: var(--text); font-size: 0.88rem;
+}
+.rm:hover { border-color: var(--accent); }
+.rm-name { font-weight: 600; }
+.rm-pos { color: var(--text-dim); font-size: 0.8rem; }
+.rm-tier { margin-left: auto; color: var(--text-dim); font-size: 0.8rem; white-space: nowrap; }
+
+/* ----- 대회 안내 ----- */
+.ev-box h2 { font-size: 1rem; margin-bottom: 12px; }
+.ev-list { display: flex; flex-direction: column; gap: 12px; }
+.ev {
+  display: flex; gap: 14px; align-items: stretch;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+}
+.ev-poster { width: 84px; border-radius: 8px; object-fit: cover; flex: none; align-self: flex-start; }
+.ev-body { min-width: 0; flex: 1; }
+.ev-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ev-name { font-weight: 700; font-size: 1rem; }
+.ev-meta { color: var(--text-dim); font-size: 0.86rem; margin-top: 4px; }
+.ev-note { color: var(--text-dim); font-size: 0.88rem; margin-top: 6px; }
+.ev-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.ev-apply { font-size: 0.84rem; color: var(--gold); }
+.ev-apply.done { color: var(--text-dim); }
+
+/* 팀 모집은 디스코드에서 */
+.discord-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap; margin-bottom: 14px; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text-dim);
+  font-size: 0.9rem; line-height: 1.6;
+}
+.discord-bar strong { color: var(--text); }
+.discord-bar .btn { background: #5865f2; flex: none; }
+.discord-bar .btn:hover { background: #6b77f5; }
+
+@media (max-width: 560px) {
+  .ev { flex-direction: column; }
+  .ev-poster { width: 100%; max-height: 180px; }
+}
+
 /* 예시 데이터를 보고 있다는 표시 */
 .sample-bar {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;

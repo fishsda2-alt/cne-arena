@@ -61,6 +61,15 @@
         <a class="btn btn-sm" href="index.html">실제 랭킹 보기</a>
       </div>
 
+      <!-- 대회·행사 — data/events.json 에 적으면 뜹니다. 기간이 지나면 저절로 내려갑니다 -->
+      <section class="card ev-box" id="eventBox" hidden>
+        <h2>대회 안내</h2>
+        <div id="eventList" class="ev-list"></div>
+        <p class="foot-note" id="eventFoot" hidden></p>
+      </section>
+
+      <div class="discord-bar" id="discordBar" hidden></div>
+
       <!-- 아직 선수가 적을 때. 빈 표만 있으면 무슨 곳인지 알 수가 없습니다 -->
       <section class="card intro-card" id="introCard" hidden>
         <h2>이제 막 문을 열었습니다</h2>
@@ -176,6 +185,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/analytics.js"></script>
+<script src="js/events.js"></script>
 <script src="js/detail.js"></script>
 <script src="js/ranking.js"></script>
 </body>

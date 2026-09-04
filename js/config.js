@@ -11,6 +11,12 @@ const SITE = {
   submitUrl: "https://script.google.com/macros/s/AKfycbwSA4iSJLt3cbQFWT4YWTgbIW7mmo3F6-GlQ1FQzIHAH-XA35ddta2iH0vcD4lHXEjIHw/exec",
   // 운영자 GitHub 저장소 (등록 신청 안내용, 비워도 됩니다)
   repoUrl: "",
+  // 팀 모집·대회 이야기를 나누는 디스코드 초대 링크.
+  //  · 팀 구성은 사이트가 아니라 여기서 합니다. 사이트에 연락 수단을 두면
+  //    개인정보를 다루게 되고, 미성년 선수가 섞여 있어 위험합니다.
+  //  · **만료되지 않는 초대 링크**로 만드세요 (기본값은 7일 뒤 끊깁니다).
+  //  · 비워두면 관련 안내가 화면에 나오지 않습니다.
+  discordUrl: "",
   // 방문 집계 (GoatCounter) — goatcounter.com 에서 만든 코드만 적습니다.
   //   예) 주소가 https://cnrank.goatcounter.com 이면  "cnrank"
   //  · 비워두면 집계 스크립트를 아예 불러오지 않습니다 (요청도 나가지 않습니다).

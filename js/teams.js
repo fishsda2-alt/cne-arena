@@ -72,6 +72,7 @@ async function selectGame(game) {
   document.title = `소속·지역 랭킹 · ${game.short} — ${SITE.name}`;
   $("#pageTitle").textContent = `소속·지역 랭킹 · ${game.short}`;
   $("#basis").textContent = game.basis;
+  renderDiscord("#discordBar");
 
   const url = new URL(location.href);
   url.searchParams.set("game", game.id);
@@ -148,6 +149,22 @@ function groups() {
   return list;
 }
 
+/** 한 묶음의 선수들 — 티어 높은 순, 언랭크는 뒤로 */
+function roster(g) {
+  const list = [...g.ranked, ...g.members.filter((p) => p.score == null)];
+  return `<div class="roster-list">` + list.map((p) => `
+    <a class="rm" href="index.html?game=${esc(GAME.id)}&player=${esc(p.id)}">
+      <span class="rm-name">${esc(p.name)}${p.proAspirant ? '<span class="star">★</span>' : ""}</span>
+      <span class="rm-pos">${esc(p.position) || "-"}</span>
+      <span class="rm-tier">${esc(p.label || "언랭크")}</span>
+    </a>`).join("") + `</div>`;
+}
+
+/** 속성 선택자에 넣을 수 있게 따옴표만 막습니다 (팀 이름에 따옴표가 들어갈 수 있음) */
+function cssEsc(s) {
+  return String(s).replace(/["\\]/g, "\\$&");
+}
+
 function render() {
   const isTeam = MODE === "team";
   $("#thGroup").firstChild.nodeValue = isTeam ? "소속 " : "지역 ";
@@ -182,17 +199,30 @@ function render() {
          <span style="color:var(--text-dim)"> · ${esc(g.top.label)}</span>`
       : "-";
 
-    return `<tr>
+    return `<tr class="clickable" data-group="${esc(g.name)}">
       <td class="rank-no ${cls}">${no}</td>
-      <td><span class="nm">${esc(g.name)}</span></td>
+      <td><span class="nm">${esc(g.name)}</span><span class="more">멤버 보기</span></td>
       <td><span class="wr">${g.members.length}명</span>${
         g.ranked.length !== g.members.length
           ? `<span style="color:var(--text-dim);font-size:.8rem"> (배치 ${g.ranked.length})</span>`
           : ""}</td>
       <td>${avg}</td>
       <td class="hide-sm">${top}</td>
+    </tr>
+    <tr class="roster" data-for="${esc(g.name)}" hidden>
+      <td colspan="5">${roster(g)}</td>
     </tr>`;
   }).join("");
+
+  // 이름을 누르면 그 아래 팀원 줄이 펼쳐집니다.
+  $("#tbody").querySelectorAll("tr[data-group]").forEach((tr) => {
+    tr.addEventListener("click", () => {
+      const row = $("#tbody").querySelector(`tr.roster[data-for="${cssEsc(tr.dataset.group)}"]`);
+      if (!row) return;
+      row.hidden = !row.hidden;
+      tr.classList.toggle("open", !row.hidden);
+    });
+  });
 
   const noTeam = ALL.filter((p) => !(isTeam ? p.team : p.region)).length;
   $("#note").textContent = [
