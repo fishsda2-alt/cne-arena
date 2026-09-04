@@ -14,6 +14,7 @@
     <nav>
       <a href="index.html">랭킹</a>
       <a href="register.html" class="active">선수 등록</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
     </nav>
   </div>
 </header>
@@ -22,11 +23,12 @@
   <div class="container">
     <div class="page-title">
       <h1>선수 등록</h1>
-      <p>본인 계정임을 확인한 뒤 랭킹에 추가됩니다. 2분이면 끝납니다.</p>
+      <p>본인 계정 확인 → 정보 입력 → 등록 완료. 3분이면 끝납니다.</p>
     </div>
 
+    <!-- ── 1단계 ─────────────────────────────────────────── -->
     <section class="card">
-      <h2>1단계 · 내 인증 아이콘 번호 확인</h2>
+      <h2><span class="step-no">1</span> 내 인증 아이콘 번호 확인</h2>
       <p>Riot ID를 입력하면 본인 인증에 사용할 <strong>프로필 아이콘 번호</strong>가 나옵니다.</p>
 
       <div class="field" style="margin-top:14px">
@@ -40,7 +42,7 @@
         <img id="iconImg" src="" alt="인증용 프로필 아이콘">
         <div>
           <div class="n"><span id="iconNo"></span>번 아이콘</div>
-          <div class="t">게임 클라이언트에서 이 아이콘으로 바꾼 뒤 2단계로 넘어가세요.</div>
+          <div class="t">게임 클라이언트에서 이 아이콘으로 바꾼 뒤 3단계를 작성하세요.</div>
         </div>
       </div>
 
@@ -49,8 +51,9 @@
       </div>
     </section>
 
+    <!-- ── 2단계 ─────────────────────────────────────────── -->
     <section class="card">
-      <h2>2단계 · 게임에서 아이콘 변경</h2>
+      <h2><span class="step-no">2</span> 게임에서 아이콘 변경</h2>
       <ol>
         <li>롤 클라이언트 실행 → 우측 상단 <strong>내 프로필</strong> 클릭</li>
         <li>프로필 아이콘 클릭 → 위에서 안내된 번호의 <strong>기본 아이콘</strong> 선택</li>
@@ -59,30 +62,79 @@
       <p style="margin-top:8px">아이콘 변경이 조회에 반영되기까지 <strong>몇 분</strong> 걸릴 수 있습니다.</p>
     </section>
 
+    <!-- ── 3단계 ─────────────────────────────────────────── -->
     <section class="card">
-      <h2>3단계 · 등록 신청</h2>
-      <p>아래 항목만 적어 보내주세요. <strong>실명·연락처는 적지 않습니다.</strong></p>
-      <ul style="margin-top:8px">
-        <li>Riot ID (예: 홍길동#KR1)</li>
-        <li><strong>랭킹에 표시할 닉네임</strong> — 본인이 원하는 대로 정하세요</li>
-        <li>지역 (천안, 아산, 공주 …)</li>
-        <li>주 포지션</li>
-        <li>소속 (학교 / 팀 / 클럽) — 충남 소재 확인용, 선택</li>
-      </ul>
-      <p style="margin-top:14px">
-        <a class="btn" id="applyBtn" href="#">신청서 작성하기</a>
-      </p>
-      <div class="notice">
-        <strong>티어는 적지 않습니다.</strong> 등록되면 Riot 서버에서 매일 새벽 자동으로 가져와
-        채웁니다. 승급하거나 강등되면 다음 날 랭킹에 저절로 반영됩니다.
+      <h2><span class="step-no">3</span> 정보 입력하고 등록하기</h2>
+      <p>아래 항목만 입력하면 등록이 끝납니다. <strong>실명·연락처는 받지 않습니다.</strong></p>
+
+      <form id="regForm" novalidate>
+        <div class="field">
+          <label for="fRiotId">Riot ID <span class="req">필수</span></label>
+          <input type="text" id="fRiotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+          <p class="err" id="errRiotId">이름#태그 형태로 입력해 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label for="fNick">랭킹에 표시할 닉네임 <span class="req">필수</span></label>
+          <input type="text" id="fNick" placeholder="본인이 원하는 대로 정하세요" maxlength="20" autocomplete="off">
+          <p class="err" id="errNick">표시할 닉네임을 입력해 주세요. (실명은 쓰지 마세요)</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="fRegion">지역 <span class="req">필수</span></label>
+            <select id="fRegion"><option value="">선택하세요</option></select>
+            <p class="err" id="errRegion">지역을 선택해 주세요.</p>
+          </div>
+          <div class="field">
+            <label for="fPosition">주 포지션 <span class="req">필수</span></label>
+            <select id="fPosition"><option value="">선택하세요</option></select>
+            <p class="err" id="errPosition">주 포지션을 선택해 주세요.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fTeam">소속 <span class="opt">선택</span></label>
+          <input type="text" id="fTeam" placeholder="학교 / 팀 / 클럽 (없으면 비워두세요)" maxlength="30" autocomplete="off">
+        </div>
+
+        <div class="field check">
+          <label>
+            <input type="checkbox" id="fIcon">
+            <span>안내된 번호로 <strong>프로필 아이콘을 변경했습니다</strong></span>
+          </label>
+          <p class="err" id="errIcon">아이콘을 먼저 변경해 주세요. 변경하지 않으면 등록이 거부됩니다.</p>
+        </div>
+
+        <div class="field check">
+          <label>
+            <input type="checkbox" id="fAgree">
+            <span>표시 닉네임·지역·포지션·소속과 <strong>티어·전적이 공개</strong>되는 데 동의합니다
+              (만 14세 미만은 보호자 동의 필요)</span>
+          </label>
+          <p class="err" id="errAgree">동의해 주셔야 등록할 수 있습니다.</p>
+        </div>
+
+        <button class="btn btn-lg" id="submitBtn" type="submit">등록 신청하기</button>
+      </form>
+
+      <div class="result-box" id="okBox">
+        <h3>접수되었습니다</h3>
+        <p id="okMsg"></p>
       </div>
+      <div class="result-box error" id="ngBox">
+        <h3>등록에 실패했습니다</h3>
+        <p id="ngMsg"></p>
+      </div>
+
       <div class="notice">
-        <strong>승인 기준:</strong> 충남 소재 학교·팀 소속이거나 충남 거주 아마추어 선수여야 합니다.
-        프로게이머 및 프로팀 소속 연습생은 등록할 수 없습니다.
+        <strong>티어는 입력하지 않습니다.</strong> 등록되면 Riot 서버에서 매일 새벽 자동으로 가져와
+        채웁니다. 승급하거나 강등되면 다음 날 랭킹에 저절로 반영됩니다.
       </div>
     </section>
 
-    <section class="card" id="proCard">
+    <!-- ── 선택 ──────────────────────────────────────────── -->
+    <section class="card">
       <h2>선택 · 프로 트라이아웃 희망 신청 <span class="star">★</span></h2>
       <p>
         프로게임단 트라이아웃을 목표로 하는 선수는 추가로 신청할 수 있습니다.
@@ -105,14 +157,15 @@
       </div>
 
       <p style="margin-top:14px">
-        <a class="btn" id="proBtn" href="#">프로 지망 신청하기</a>
+        <a class="btn" href="pro.html" target="_blank" rel="noopener">프로 지망 신청 안내 열기</a>
       </p>
       <p style="margin-top:10px; color:var(--text-dim); font-size:0.88rem">
-        일반 등록(3단계)을 먼저 마친 뒤에 신청해 주세요. 신청은 언제든 취소할 수 있고,
+        위 3단계 등록을 먼저 마친 뒤에 신청해 주세요. 신청은 언제든 취소할 수 있고,
         취소하면 <span class="star">★</span> 표시와 보관된 연락처를 모두 지웁니다.
       </p>
     </section>
 
+    <!-- ── 개인정보 ──────────────────────────────────────── -->
     <section class="card">
       <h2>개인정보 안내</h2>
 
@@ -150,51 +203,6 @@
 
 <script src="js/config.js"></script>
 <script src="js/verify.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("contact").textContent = SITE.contact;
-
-  // 구글 폼 주소가 config.js에 없으면 이메일 신청으로 대체합니다.
-  function wireApplyButton(el, formUrl, subject, fallbackLabel) {
-    if (formUrl) {
-      el.href = formUrl;
-      el.target = "_blank";
-      el.rel = "noopener";
-    } else {
-      el.href = `mailto:${SITE.contact}?subject=${encodeURIComponent(subject)}`;
-      el.textContent = fallbackLabel;
-    }
-  }
-  wireApplyButton(
-    document.getElementById("applyBtn"), SITE.formUrl,
-    "[랭킹] 선수 등록 신청", "이메일로 신청하기"
-  );
-  wireApplyButton(
-    document.getElementById("proBtn"), SITE.proFormUrl,
-    "[랭킹] 프로 트라이아웃 희망 신청", "이메일로 프로 지망 신청하기"
-  );
-
-  const input = document.getElementById("riotId");
-  const hint = document.getElementById("hint");
-  const result = document.getElementById("result");
-
-  function check() {
-    const parsed = splitRiotId(input.value);
-    if (!parsed) {
-      hint.classList.add("show");
-      result.classList.remove("show");
-      return;
-    }
-    hint.classList.remove("show");
-    const id = expectedIconId(parsed.gameName, parsed.tagLine);
-    document.getElementById("iconNo").textContent = id;
-    document.getElementById("iconImg").src = profileIconUrl(id);
-    result.classList.add("show");
-  }
-
-  document.getElementById("checkBtn").addEventListener("click", check);
-  input.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
-});
-</script>
+<script src="js/register.js"></script>
 </body>
 </html>

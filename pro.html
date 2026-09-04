@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프로 트라이아웃 희망 신청 — 충남 아마추어 LoL 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CN <span>RANK</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="pro.html" class="active">프로 지망 <span class="star">★</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>프로 트라이아웃 희망 신청 <span class="star">★</span></h1>
+      <p>승인되면 랭킹표의 닉네임 옆에 ★ 가 붙습니다.</p>
+    </div>
+
+    <section class="card">
+      <h2>이 신청은 이메일로만 받습니다</h2>
+      <p>
+        이름·연락처·이메일은 <strong>민감한 개인정보</strong>라서, 자동 등록 시스템을 거치지 않습니다.
+        자동 경로는 처리 기록이 공개 저장소에 남기 때문에 연락처가 노출될 수 있습니다.
+        그래서 이 신청만은 운영자에게 직접 메일로 받아 <strong>비공개 명단</strong>에만 보관합니다.
+      </p>
+      <div class="notice">
+        사이트에 공개되는 것은 <span class="star">★</span> 표시 하나뿐입니다.
+        실명·연락처·이메일은 어디에도 게시되지 않습니다.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>보낼 곳</h2>
+      <div class="mail-to">
+        <span id="mailAddr"></span>
+        <button class="btn ghost btn-sm" id="copyMail">주소 복사</button>
+      </div>
+      <p style="margin-top:10px">제목: <strong>[랭킹] 프로 트라이아웃 희망 신청</strong></p>
+    </section>
+
+    <section class="card">
+      <h2>메일에 적을 양식</h2>
+      <p>아래 내용을 복사해서 빈칸을 채워 보내주세요.</p>
+
+      <pre class="mail-preview" id="tpl">[충남 아마추어 랭킹] 프로 트라이아웃 희망 신청
+
+1. Riot ID (예: 홍길동#KR1):
+2. 랭킹에 등록한 표시 닉네임:
+3. 이름 (실명):
+4. 연락처:
+5. 이메일:
+6. 생년월일 (만 14세 미만 여부 확인용):
+7. 희망 포지션:
+8. 현재 소속 (학교 / 팀 / 없음):
+9. 자기소개 및 목표 (자유 기술, 선택):
+
+[동의 항목] — 동의하시면 각 줄 끝에 "예"를 적어주세요.
+- 프로게임단 트라이아웃 연계를 위한 개인정보 수집·이용에 동의합니다:
+- 구단 문의 시 본인 확인 후 연락처가 전달되는 데 동의합니다:
+- (만 14세 미만인 경우) 보호자 동의를 받았습니다:
+
+[보호자 동의] — 만 14세 미만만 작성
+- 보호자 성함:
+- 보호자 연락처:</pre>
+
+      <div class="btn-row">
+        <button class="btn" id="copyTpl">양식 복사하기</button>
+        <a class="btn ghost" id="mailBtn" href="#">양식이 채워진 메일 열기</a>
+      </div>
+      <p class="copied" id="copied">복사했습니다</p>
+    </section>
+
+    <section class="card">
+      <h2>신청 후 절차</h2>
+      <ol>
+        <li>운영자가 <strong>일반 등록이 되어 있는지</strong> 확인합니다 (안 되어 있으면 먼저 등록해 주세요)</li>
+        <li>보내주신 정보를 <strong>비공개 명단</strong>에 기록합니다</li>
+        <li>랭킹표의 닉네임 옆에 <span class="star">★</span> 가 붙습니다 (다음 갱신 시 반영)</li>
+        <li>구단·관계자 문의가 오면 <strong>본인에게 먼저 연락</strong>해 의사를 확인한 뒤 전달합니다</li>
+      </ol>
+      <div class="notice">
+        <strong>취소는 언제든 가능합니다.</strong> 같은 이메일 주소로 "프로 지망 취소"라고 보내주시면
+        <span class="star">★</span> 표시와 보관 중인 연락처를 모두 삭제합니다.
+      </div>
+    </section>
+
+    <p style="text-align:center; margin-top:24px">
+      <a href="register.html">← 선수 등록 페이지로 돌아가기</a>
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>솔로랭크 기준 · 데이터 출처 Riot Games API</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const addr = SITE.contact;
+  document.getElementById("mailAddr").textContent = addr;
+
+  const tpl = document.getElementById("tpl").textContent;
+  document.getElementById("mailBtn").href =
+    `mailto:${addr}?subject=${encodeURIComponent("[랭킹] 프로 트라이아웃 희망 신청")}` +
+    `&body=${encodeURIComponent(tpl)}`;
+
+  const copied = document.getElementById("copied");
+  function flash(msg) {
+    copied.textContent = msg;
+    copied.classList.add("show");
+    setTimeout(() => copied.classList.remove("show"), 2000);
+  }
+
+  async function copy(text, msg) {
+    try {
+      await navigator.clipboard.writeText(text);
+      flash(msg);
+    } catch {
+      // 클립보드 권한이 없을 때는 직접 선택할 수 있게 안내합니다.
+      flash("복사에 실패했습니다. 아래 내용을 직접 선택해 복사해 주세요.");
+    }
+  }
+
+  document.getElementById("copyTpl").addEventListener("click", () => copy(tpl, "양식을 복사했습니다"));
+  document.getElementById("copyMail").addEventListener("click", () => copy(addr, "주소를 복사했습니다"));
+});
+</script>
+</body>
+</html>

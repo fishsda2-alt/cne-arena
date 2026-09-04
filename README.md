@@ -18,6 +18,9 @@
               │  ② 프로필 아이콘 일치 확인    (summoner-v4)   ← 본인 인증
               ▼
         data/players.json  (승인된 선수 명단, 영구 보관)
+              ▲
+              └── (자동 등록을 연결한 경우) 등록 페이지 제출 → Apps Script
+                  → GitHub Actions가 같은 인증을 거쳐 바로 등록
               │
    [자동]  매일 04:10 GitHub Actions
               │  ③ 티어 조회                  (league-v4/entries/by-puuid)
@@ -37,28 +40,33 @@
 ```
 cnrank/
 ├── index.html               랭킹표 (티어순 / 주간 상승 / 승률 / 판수)
-├── register.html            선수 등록 안내 + 인증 아이콘 번호 계산기
+├── register.html            선수 등록 — 아이콘 인증 + 입력 폼 + 제출
+├── pro.html                 프로 트라이아웃 희망 신청 안내 (이메일 양식)
 ├── css/style.css
 ├── js/
-│   ├── config.js            ★ 사이트명·연락처·지역 목록 (여기만 고치면 됨)
+│   ├── config.js            ★ 사이트명·연락처·지역 목록·자동등록 주소 (여기만 고치면 됨)
 │   ├── verify.js            인증 아이콘 번호 계산 (Python과 동일한 CRC32)
+│   ├── register.js          등록 폼 검증 + 제출 (자동등록 ↔ 이메일 자동 전환)
 │   └── ranking.js           랭킹표 렌더링
 ├── scripts/                 (GitHub Actions가 실행, 외부 패키지 0개)
 │   ├── riot.py              API 클라이언트 + 요청 한도 제어
 │   ├── ranking.py           티어→점수 변환·정렬
 │   ├── update_ranking.py    하루 1회 갱신
 │   ├── add_player.py        선수 등록 + 아이콘 인증
-│   └── manage_player.py     승인 / 보류 / 삭제
+│   ├── manage_player.py     승인 / 보류 / ★표시 / 수정 / 삭제
+│   └── apps-script/
+│       └── register-proxy.gs  자동 등록 중계 (구글 Apps Script에 붙여넣는 코드)
 ├── data/
 │   ├── players.json         등록 선수 명단 (워크플로가 관리)
 │   ├── ranking.json         자동 생성 — 사이트가 읽는 유일한 파일
 │   ├── ranking.sample.json  API 키 없이 화면만 보고 싶을 때 쓰는 예시
 │   └── history/YYYY-MM.json 일별 스냅샷 (주간 상승폭 계산용)
 ├── .github/workflows/
-│   ├── update-ranking.yml   매일 04:10 자동 갱신
-│   ├── add-player.yml       선수 등록 (수동 실행)
-│   ├── manage-player.yml    승인/보류/삭제 (수동 실행)
-│   └── deploy-pages.yml     정적 사이트 배포
+│   ├── update-ranking.yml     매일 04:10 자동 갱신
+│   ├── register-from-site.yml 사이트에서 들어온 신청 자동 등록
+│   ├── add-player.yml         선수 등록 (수동 실행)
+│   ├── manage-player.yml      승인/보류/★/수정/삭제 (수동 실행)
+│   └── deploy-pages.yml       정적 사이트 배포
 ├── serve.ps1 / start-server.bat   로컬 미리보기 (아무것도 설치 안 해도 됨)
 └── README.md
 ```
@@ -165,23 +173,49 @@ git push -u origin main
 > **티어·전적은 운영자가 바꿀 수 없습니다.** Riot API가 매일 새벽에 자동으로 채웁니다.
 > 선수가 직접 정하는 것은 표시 닉네임·지역·주 포지션·소속뿐입니다.
 
-### 신청은 어떻게 받나요 — 폼 두 개로 나눕니다
+### 신청 창구는 둘로 나뉩니다
 
-개인정보를 받는 창구와 안 받는 창구를 반드시 분리하세요.
+| | 일반 등록 (`register.html`) | 프로 지망 (`pro.html`) |
+|---|---|---|
+| 받는 정보 | 닉네임·지역·포지션·소속 | 이름·연락처·이메일 |
+| 처리 방식 | **사이트에서 바로 자동 등록** | **이메일로만** |
+| 결과 | 랭킹에 등재 | 닉네임 옆 ★ 표시 |
+| 보관 위치 | 저장소 (공개) | 구글 드라이브 (비공개) |
 
-**① 일반 등록 폼** → `js/config.js`의 `formUrl`
+프로 지망을 자동 경로에 태우지 않는 이유는 **Actions 실행 기록이 공개**되기 때문입니다.
+연락처가 로그에 남으면 되돌릴 수 없습니다. 그래서 이메일로만 받고,
+저장소에는 `선수 관리 → pro` 로 ★ 플래그만 켭니다.
 
-문항: Riot ID / 랭킹에 표시할 닉네임 / 지역 / 주 포지션 / 소속(선택) / 개인정보 동의
-**실명·연락처·생년월일은 받지 않습니다.** 티어도 받지 않습니다(자동 수집).
+---
 
-**② 프로 트라이아웃 희망 폼** → `js/config.js`의 `proFormUrl`
+## 자동 등록 연결하기 (선택, 무료)
 
-문항: Riot ID / 이름 / 연락처 / 이메일 / 제3자 제공 동의 / (미성년자면) 보호자 동의
+`js/config.js`의 `submitUrl`이 비어 있으면 등록 페이지의 제출 버튼은
+**입력값이 채워진 이메일 창**을 엽니다. 운영자가 그걸 보고 워크플로를 돌리면 됩니다.
+이것만으로도 운영은 됩니다.
 
-응답은 **구글 드라이브에만 두고**, 저장소에는 `선수 등록` 워크플로의
-**"프로 트라이아웃 희망" 체크만** 켜세요. 그러면 랭킹표에 ★ 표시가 붙습니다.
+여기에 Google Apps Script를 붙이면 **선수가 제출한 즉시 자동 등록**됩니다.
 
-두 폼 모두 접수되면 운영자가 아이콘 인증을 확인하고 **선수 등록** 워크플로를 실행합니다.
+```
+등록 페이지 → Apps Script → GitHub Actions → 아이콘 인증 → 등록 완료 (1~2분)
+```
+
+GitHub Pages에는 서버가 없어서 브라우저가 저장소에 직접 쓸 수 없습니다.
+Apps Script가 그 사이에서 토큰을 보관하는 중계 역할을 합니다. 비용은 없습니다.
+
+설치 방법은 [scripts/apps-script/register-proxy.gs](scripts/apps-script/register-proxy.gs)
+파일 맨 위 주석에 단계별로 적어두었습니다. 요약하면:
+
+1. script.google.com에서 새 프로젝트 → 그 파일 내용 붙여넣기
+2. 스크립트 속성에 `GITHUB_TOKEN` / `GITHUB_OWNER` / `GITHUB_REPO` 등록
+3. 웹 앱으로 배포 (액세스 권한: **모든 사용자**)
+4. 나온 URL을 `js/config.js`의 `submitUrl`에 붙여넣고 커밋
+
+토큰은 Apps Script 안에만 있고 사이트에는 노출되지 않습니다.
+도배 방지로 하루 접수 수 제한이 걸려 있습니다 (`DAILY_LIMIT`).
+
+> 자동 등록도 **아이콘 인증을 반드시 통과해야** 등록됩니다.
+> 남의 Riot ID를 적어 보내면 아이콘이 달라서 실패합니다.
 
 ---
 
