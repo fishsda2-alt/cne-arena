@@ -161,6 +161,12 @@ tr.roster td { background: var(--bg); padding: 10px 12px; }
 .ev-apply { font-size: 0.84rem; color: var(--gold); }
 .ev-apply.done { color: var(--text-dim); }
 
+.ev-box + .ev-box { margin-top: 16px; }
+.ev-box .empty { padding: 28px 12px; }
+/* 지난 대회는 눈에 덜 띄게 — 있다는 것만 알면 됩니다 */
+.ev-list.past .ev { opacity: .62; }
+.ev-list.past .ev:hover { opacity: 1; }
+
 /* 팀 모집은 디스코드에서 */
 .discord-bar {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;

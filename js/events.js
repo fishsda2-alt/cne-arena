@@ -8,34 +8,36 @@
  * 되고 미성년 선수가 섞여 있어서, 디스코드로 보냅니다.
  */
 
-async function loadEvents(gameId) {
-  const box = document.querySelector("#eventBox");
-  if (!box) return;
-
-  let data;
+async function fetchEvents() {
   try {
     const res = await fetch(`data/events.json?t=${Date.now()}`);
     if (!res.ok) throw new Error(res.status);
-    data = await res.json();
+    const data = await res.json();
+    return (data.events || []).filter((e) => e && e.name);
   } catch (e) {
-    box.hidden = true;
-    return;
+    return null;
   }
+}
 
+/** 대회 안내 페이지 — 진행 중·예정을 위에, 지난 대회를 아래에 */
+async function renderEventsPage() {
+  const all = await fetchEvents();
   const today = kstToday();
-  const list = (data.events || [])
-    .filter((e) => e && e.name)
-    .filter((e) => !e.game || e.game === gameId)      // 종목이 지정된 대회는 그 종목에서만
-    .filter((e) => !e.end || e.end >= today)          // 끝난 대회는 내립니다
+
+  const live = (all || [])
+    .filter((e) => !e.end || e.end >= today)
     .sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999"));
+  const past = (all || [])
+    .filter((e) => e.end && e.end < today)
+    .sort((a, b) => (b.end || "").localeCompare(a.end || ""));
 
-  if (!list.length) {
-    box.hidden = true;
-    return;
+  document.querySelector("#eventList").innerHTML = live.map((e) => card(e, today)).join("");
+  document.querySelector("#eventEmpty").hidden = live.length > 0;
+
+  if (past.length) {
+    document.querySelector("#pastList").innerHTML = past.map((e) => card(e, today)).join("");
+    document.querySelector("#pastBox").hidden = false;
   }
-
-  document.querySelector("#eventList").innerHTML = list.map((e) => card(e, today)).join("");
-  box.hidden = false;
 }
 
 /** KST 기준 오늘 (YYYY-MM-DD) */
@@ -44,10 +46,13 @@ function kstToday() {
 }
 
 function card(e, today) {
-  const running = e.start && e.start <= today && (!e.end || e.end >= today);
-  const state = running
-    ? '<span class="chip ok">진행 중</span>'
-    : '<span class="chip">예정</span>';
+  const ended = e.end && e.end < today;
+  const running = !ended && e.start && e.start <= today && (!e.end || e.end >= today);
+  const state = ended
+    ? '<span class="chip">종료</span>'
+    : running
+      ? '<span class="chip ok">진행 중</span>'
+      : '<span class="chip">예정</span>';
 
   const period = [e.start, e.end].filter(Boolean).join(" ~ ") || "기간 미정";
 
@@ -69,10 +74,13 @@ function card(e, today) {
     ? `<img class="ev-poster" src="${escEv(e.poster)}" alt="${escEv(e.name)} 포스터" loading="lazy">`
     : "";
 
+  const g = e.game && typeof gameById === "function" ? gameById(e.game) : null;
+  const gameChip = g ? `<span class="chip">${escEv(g.short)}</span>` : "";
+
   return `<article class="ev">
     ${poster}
     <div class="ev-body">
-      <div class="ev-top">${state}<span class="ev-name">${escEv(e.name)}</span></div>
+      <div class="ev-top">${state}${gameChip}<span class="ev-name">${escEv(e.name)}</span></div>
       <div class="ev-meta">${escEv(period)}${e.host ? ` · ${escEv(e.host)}` : ""}</div>
       ${e.note ? `<div class="ev-note">${escEv(e.note)}</div>` : ""}
       <div class="ev-foot">${apply}${link}</div>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대회 안내 — 충남 아마추어 랭킹</title>
+<meta name="description" content="충남 선수들이 나갈 수 있는 e스포츠 대회 일정입니다. 기간·신청 마감·공식 안내를 모아둡니다.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CHUNGNAM RANK.GG">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="대회 안내 — 충남 아마추어 랭킹">
+<meta property="og:description" content="충남 선수들이 나갈 수 있는 e스포츠 대회 일정입니다. 기간·신청 마감·공식 안내를 모아둡니다.">
+<meta property="og:url" content="https://fishsda2-alt.github.io/cne-arena/events.html">
+<meta property="og:image" content="https://fishsda2-alt.github.io/cne-arena/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://fishsda2-alt.github.io/cne-arena/events.html">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="teams.html">소속 랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="edit.html">정보 수정</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
+      <a href="events.html" class="active">대회 안내</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>대회 안내</h1>
+      <p>충남 선수들이 나갈 수 있는 대회를 모아둡니다. 자세한 내용은 각 대회의 공식 안내를 확인하세요.</p>
+    </div>
+
+    <div class="discord-bar" id="discordBar" hidden></div>
+
+    <section class="card ev-box">
+      <h2>진행 중 · 예정</h2>
+      <div id="eventList" class="ev-list"></div>
+      <p class="empty" id="eventEmpty" hidden>
+        지금은 안내할 대회가 없습니다.<br>
+        알고 계신 대회가 있으면 디스코드로 알려주세요.
+      </p>
+    </section>
+
+    <section class="card ev-box" id="pastBox" hidden>
+      <h2>지난 대회</h2>
+      <div id="pastList" class="ev-list past"></div>
+    </section>
+
+    <p class="foot-note">
+      대회 정보는 주최측 공지를 옮겨 적은 것입니다. 일정이 바뀔 수 있으니
+      신청 전에 공식 안내를 꼭 확인하세요.
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>데이터 출처 Riot Games API</p>
+    <p style="margin-top:6px">
+      이 사이트는 Riot Games의 승인을 받지 않았으며, Riot Games 또는 Riot Games 자산의
+      제작·관리에 공식적으로 관여한 모든 이들의 견해나 의견을 반영하지 않습니다.
+      Riot Games와 관련 자산은 Riot Games, Inc.의 상표 또는 등록상표입니다.
+    </p>
+    <p style="margin-top:14px">
+      <a class="brand-btn" href="admin.html">CHUNGNAM <span>RANK.GG</span></a>
+    </p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/events.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    renderEventsPage();
+    renderDiscord("#discordBar");
+  });
+</script>
+</body>
+</html>
