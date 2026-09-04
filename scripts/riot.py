@@ -5,12 +5,11 @@ Riot API 클라이언트 — 표준 라이브러리만 사용합니다 (pip inst
 두 제한을 모두 지키도록 요청 전에 스스로 대기하며, 429가 오면 Retry-After만큼 쉬었다 재시도합니다.
 """
 
+import http.client
 import json
 import os
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 import zlib
 from collections import deque
 
@@ -117,45 +116,62 @@ class RiotAPI:
             time.sleep(wait)
 
     def _get(self, host, path, retries=3):
-        url = f"https://{host}{path}"
-        req = urllib.request.Request(url, headers={"X-Riot-Token": self.api_key})
+        """
+        Riot API 호출.
 
+        ★ urllib을 쓰면 안 됩니다.
+          urllib은 헤더 이름을 자기 형식으로 바꿔(X-Riot-Token → X-riot-token) 보내는데,
+          Riot 게이트웨이가 이를 인증 헤더로 인정하지 않고 403으로 거부합니다.
+          http.client는 지정한 표기 그대로 보내므로 정상 동작합니다.
+        """
         for attempt in range(retries + 1):
             self._throttle()
+
+            conn = http.client.HTTPSConnection(host, timeout=15)
             try:
-                with urllib.request.urlopen(req, timeout=15) as res:
-                    return json.loads(res.read().decode("utf-8"))
-            except urllib.error.HTTPError as e:
-                if e.code == 404:
-                    raise NotFound(404, path)
-                if e.code in (401, 403):
-                    # 키 만료·오입력이 가장 흔한 실패 원인이라 진단 정보를 함께 보여줍니다.
-                    raise RiotError(
-                        e.code,
-                        "API 키가 거부되었습니다. "
-                        f"[Secret에 들어있는 값: {self.key_shape()}] "
-                        "정상값은 'RGAPI-'로 시작하는 42자입니다. "
-                        "모양이 다르면 붙여넣기가 잘못된 것이고, "
-                        "모양이 맞는데도 거부되면 키를 재발급한 뒤 Secret을 "
-                        "다시 교체하지 않은 것입니다 (재발급하면 이전 키는 즉시 무효).",
-                    )
-                if e.code == 429 and attempt < retries:
-                    try:
-                        delay = int(e.headers.get("Retry-After", "10"))
-                    except (TypeError, ValueError):
-                        delay = 10
-                    print(f"    · 요청 한도 초과, {delay}초 대기")
-                    time.sleep(delay + 1)
-                    continue
-                if e.code in (500, 502, 503, 504) and attempt < retries:
-                    time.sleep(2 ** attempt)
-                    continue
-                raise RiotError(e.code, f"{path} — {e.reason}")
-            except urllib.error.URLError as e:
+                conn.request("GET", path, headers={"X-Riot-Token": self.api_key})
+                res = conn.getresponse()
+                status, reason = res.status, res.reason
+                retry_after = res.getheader("Retry-After")
+                body = res.read()
+            except (OSError, http.client.HTTPException) as e:
                 if attempt < retries:
                     time.sleep(2 ** attempt)
                     continue
-                raise RiotError(0, f"{path} — 네트워크 오류: {e.reason}")
+                raise RiotError(0, f"{path} — 네트워크 오류: {e}")
+            finally:
+                conn.close()
+
+            if status == 200:
+                return json.loads(body.decode("utf-8"))
+
+            if status == 404:
+                raise NotFound(404, path)
+
+            if status in (401, 403):
+                raise RiotError(
+                    status,
+                    "API 키가 거부되었습니다. "
+                    f"[Secret에 들어있는 값: {self.key_shape()}] "
+                    "정상값은 'RGAPI-'로 시작하는 42자입니다. "
+                    "developer.riotgames.com 앱 화면의 API Key를 복사해 "
+                    "저장소 Secret의 RIOT_API_KEY 값을 교체하세요.",
+                )
+
+            if status == 429 and attempt < retries:
+                try:
+                    delay = int(retry_after)
+                except (TypeError, ValueError):
+                    delay = 10
+                print(f"    · 요청 한도 초과, {delay}초 대기")
+                time.sleep(delay + 1)
+                continue
+
+            if status in (500, 502, 503, 504) and attempt < retries:
+                time.sleep(2 ** attempt)
+                continue
+
+            raise RiotError(status, f"{path} — {reason}")
 
         raise RiotError(0, f"{path} — 재시도 실패")
 
