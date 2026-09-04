@@ -35,6 +35,7 @@ async function init() {
   }
 
   loadVisits();
+  buildEventSearch();
   loadEventQueue();
   await load();
 }
@@ -438,4 +439,46 @@ async function actEvent(op, id, btn) {
     btn.disabled = false;
     btn.textContent = before;
   }
+}
+
+/* ───────── 대회 찾기 ───────── */
+
+/**
+ * 지역별 검색 링크를 만듭니다.
+ *
+ * 자동으로 긁어오지 않는 이유는, 웹 검색 결과에 후기·광고·타 지역 대회가 섞여
+ * 승인 대기열이 오히려 일거리가 되기 때문입니다. 여기서는 **찾는 수고만** 덜어 줍니다 —
+ * 검색어를 짜는 일을 대신하고, 판단은 사람이 합니다.
+ */
+function buildEventSearch() {
+  const type = $("#srcType");
+  const engine = $("#srcEngine");
+  if (!type) return;
+
+  type.innerHTML = EVENT_SOURCES.map(
+    (s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+  engine.innerHTML = SEARCH_ENGINES.map(
+    (e) => `<option value="${esc(e.id)}">${esc(e.name)}에서 찾기</option>`).join("");
+
+  type.addEventListener("change", drawEventSearch);
+  engine.addEventListener("change", drawEventSearch);
+  drawEventSearch();
+}
+
+function drawEventSearch() {
+  const src = EVENT_SOURCES.find((s) => s.id === $("#srcType").value) || EVENT_SOURCES[0];
+  const eng = SEARCH_ENGINES.find((e) => e.id === $("#srcEngine").value) || SEARCH_ENGINES[0];
+
+  const link = (label, query, extra = "") =>
+    `<a class="${extra}" href="${esc(eng.url + encodeURIComponent(query))}"
+        target="_blank" rel="noopener" title="${esc(query)}">${esc(label)}</a>`;
+
+  const forRegion = (r) =>
+    src.query.replace("{지역}", r).replace("{시군}", REGION_KIND[r] || "").trim();
+
+  // 시·군을 가리지 않고 훑는 검색을 앞에 둡니다. 지역 자리를 비우면
+  // "청 e스포츠 대회" 처럼 말이 안 되는 검색어가 되므로 따로 적어 둡니다.
+  $("#srcLinks").innerHTML =
+    link("충남 전체", src.wide || src.query, "wide") +
+    REGIONS.map((r) => link(r, forRegion(r))).join("");
 }

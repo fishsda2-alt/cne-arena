@@ -79,6 +79,20 @@
       <p class="copied" id="keyMsg"></p>
     </section>
 
+    <!-- ── 대회 찾기 (운영자 도구를 열었을 때만) ───────── -->
+    <section class="card manage-only" id="findEvents">
+      <h2>대회 찾기</h2>
+      <p>충남 선수가 나갈 수 있는 대회는 대개 <strong>시·군청과 청소년기관</strong>이 공고합니다.
+        아래에서 지역을 누르면 그 검색 결과가 새 창으로 열립니다.
+        쓸 만한 대회를 찾으면 <a href="events.html">대회 안내</a>의 제보 폼으로 등록하세요.</p>
+
+      <div class="controls" style="margin-top:12px">
+        <select id="srcType"></select>
+        <select id="srcEngine"></select>
+      </div>
+      <div id="srcLinks" class="src-links"></div>
+    </section>
+
     <!-- ── 대회 제보 승인 (운영자 도구를 열었을 때만) ───── -->
     <section class="card manage-only" id="eventQueue">
       <h2>대회 제보 <span id="evCount" style="font-weight:400; color:var(--text-dim)"></span></h2>
