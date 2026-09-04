@@ -123,15 +123,6 @@ main { flex: 1; padding: 30px 0 60px; }
 .tabs button:hover { color: var(--text); }
 .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 
-/* 대회 찾기 — 지역별 검색 링크 */
-.src-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.src-links a {
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
-  padding: 7px 15px; font-size: 0.9rem; color: var(--text); text-decoration: none;
-}
-.src-links a:hover { border-color: var(--accent); color: var(--accent); }
-.src-links a.wide { border-style: dashed; }
-
 /* 클럽 랭킹 — 펼친 소속 선수 목록 */
 #tbody tr.clickable .more {
   color: var(--text-dim); font-size: 0.78rem; margin-left: 8px; opacity: 0; transition: opacity .15s;
