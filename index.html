@@ -58,11 +58,17 @@
       <div class="stat"><div class="k">1위</div><div class="v small" id="sTop">-</div></div>
     </section>
 
+    <section class="card dist" id="distBox" hidden>
+      <h2>티어 분포 <span id="distNote"></span></h2>
+      <div id="dist" class="bars"></div>
+    </section>
+
     <div class="tabs">
       <button data-sort="tier" class="active">티어순</button>
       <button data-sort="weekly">주간 상승</button>
       <button data-sort="winrate">승률 (20판 이상)</button>
       <button data-sort="games">판수</button>
+      <button data-sort="flex" class="flex-only">자유랭크</button>
     </div>
 
     <div class="controls">

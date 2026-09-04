@@ -101,6 +101,8 @@ def build_entry(player, api, previous):
             "division": flex.get("rank", ""),
             "lp": int(flex.get("leaguePoints", 0)),
             "label": ranking.label(flex["tier"], flex.get("rank"), flex.get("leaguePoints")),
+            # 자유랭크 탭 정렬용. 솔로랭크와 같은 함수를 써야 두 표의 기준이 어긋나지 않습니다.
+            "score": ranking.score(flex["tier"], flex.get("rank"), flex.get("leaguePoints")),
         }
         if flex
         else None

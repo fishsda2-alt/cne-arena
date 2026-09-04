@@ -115,6 +115,11 @@ main { flex: 1; padding: 30px 0 60px; }
 .tabs button:hover { color: var(--text); }
 .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 
+/* 티어 분포 */
+.card.dist { padding: 16px 20px; margin-bottom: 14px; }
+.card.dist h2 { font-size: 0.95rem; margin-bottom: 2px; }
+.card.dist h2 span { font-weight: 400; color: var(--text-dim); font-size: 0.85rem; margin-left: 6px; }
+
 /* ----- 랭킹 표 ----- */
 .table-wrap {
   background: var(--surface); border: 1px solid var(--border);
