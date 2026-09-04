@@ -6,10 +6,10 @@
   "players": [
     {
       "id": "p001",
-      "name": "test3",
-      "team": "",
-      "region": "천안",
-      "position": "정글",
+      "name": "로니훈",
+      "team": "ccon",
+      "region": "아산",
+      "position": "서포터",
       "gameName": "Yeunsb",
       "tagLine": "KR1",
       "proAspirant": false,
