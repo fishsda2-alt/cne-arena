@@ -18,6 +18,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 
 from riot import NotFound, RiotAPI, RiotError, expected_icon_id, normalize_riot_id, split_riot_id
@@ -93,16 +94,29 @@ def main():
 
     if not args.skip_verify:
         want = expected_icon_id(game_name, tag_line)
-        try:
-            summoner = api.summoner_by_puuid(puuid)
-        except RiotError as e:
-            print(f"오류: 소환사 조회 실패 — {e}", file=sys.stderr)
-            return 1
-        got = summoner.get("profileIconId")
+        # Riot 서버가 아이콘 변경을 늦게 반영하는 경우가 잦아, 한 번 더 기다렸다 확인합니다.
+        attempts = max(1, int(os.environ.get("VERIFY_ATTEMPTS", "3")))
+        delay = int(os.environ.get("VERIFY_DELAY", "25"))
+        got = None
+        for i in range(attempts):
+            if i:
+                print(f"    · 아이콘이 아직 {want}번이 아닙니다(현재 {got}번). "
+                      f"{delay}초 후 재확인 ({i + 1}/{attempts})")
+                time.sleep(delay)
+            try:
+                summoner = api.summoner_by_puuid(puuid)
+            except RiotError as e:
+                print(f"오류: 소환사 조회 실패 — {e}", file=sys.stderr)
+                return 1
+            got = summoner.get("profileIconId")
+            if got == want:
+                break
+
         if got != want:
             print(f"인증 실패: 현재 아이콘 {got}번, 필요한 아이콘 {want}번", file=sys.stderr)
             print("      신청자가 게임에서 프로필 아이콘을 바꾸고 로비로 나온 뒤 다시 시도하세요.", file=sys.stderr)
-            print("      (아이콘 변경이 API에 반영되기까지 몇 분 걸릴 수 있습니다)", file=sys.stderr)
+            print(f"      ({attempts}회 확인했으나 계속 {got}번이었습니다. "
+                  "변경 직후라면 몇 분 뒤 다시 신청해 주세요)", file=sys.stderr)
             return 1
         print(f"인증 성공: 프로필 아이콘 {want}번 확인")
 
