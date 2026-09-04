@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소속·지역 랭킹 — 충남 아마추어 랭킹</title>
+<meta name="description" content="학교·클럽 단위, 시·군 단위 순위입니다. 평균 티어와 인원, 대표 선수를 함께 봅니다.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CHUNGNAM RANK.GG">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="소속·지역 랭킹 — 충남 아마추어 랭킹">
+<meta property="og:description" content="학교·클럽 단위, 시·군 단위 순위입니다. 평균 티어와 인원, 대표 선수를 함께 봅니다.">
+<meta property="og:url" content="https://fishsda2-alt.github.io/cne-arena/teams.html">
+<meta property="og:image" content="https://fishsda2-alt.github.io/cne-arena/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://fishsda2-alt.github.io/cne-arena/teams.html">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="teams.html" class="active">소속 랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="edit.html">정보 수정</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <nav class="game-tabs" id="gameTabs" aria-label="종목 선택"></nav>
+
+    <div class="page-title">
+      <h1 id="pageTitle">소속·지역 랭킹</h1>
+      <p id="pageDesc">학교·클럽과 시·군을 단위로 묶어 평균 티어순으로 보여줍니다.</p>
+    </div>
+
+    <section class="card notice-card" id="gameNotice" hidden>
+      <h2 id="noticeTitle"></h2>
+      <div id="noticeBody"></div>
+    </section>
+
+    <div id="liveArea">
+      <div class="tabs" id="modeTabs">
+        <button data-mode="team" class="active">소속</button>
+        <button data-mode="region">지역</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="rank-no">#</th>
+              <th id="thGroup">소속 <span id="count" style="font-weight:400"></span></th>
+              <th>인원</th>
+              <th>평균 티어</th>
+              <th class="hide-sm">대표 선수</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="empty">불러오는 중…</div>
+      </div>
+
+      <p class="foot-note" id="note"></p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p><span id="basis">솔로랭크 기준</span> · 데이터 출처 Riot Games API</p>
+    <p style="margin-top:6px">
+      이 사이트는 Riot Games의 승인을 받지 않았으며, Riot Games 또는 Riot Games 자산의
+      제작·관리에 공식적으로 관여한 모든 이들의 견해나 의견을 반영하지 않습니다.
+      Riot Games와 관련 자산은 Riot Games, Inc.의 상표 또는 등록상표입니다.
+    </p>
+    <p style="margin-top:14px">
+      <a class="brand-btn" href="admin.html">CHUNGNAM <span>RANK.GG</span></a>
+    </p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/teams.js"></script>
+</body>
+</html>

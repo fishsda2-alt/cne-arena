@@ -45,6 +45,8 @@ a { color: var(--accent); }
 .site-header nav a {
   color: var(--text-dim); text-decoration: none; margin-left: 18px;
   font-size: 0.94rem; padding: 6px 2px; border-bottom: 2px solid transparent;
+  /* 좁은 화면에서 메뉴가 두 줄이 되더라도 낱말 가운데서 끊기지 않게 */
+  white-space: nowrap; display: inline-block;
 }
 .site-header nav a:hover { color: var(--text); }
 .site-header nav a.active { color: var(--accent); border-bottom-color: var(--accent); }

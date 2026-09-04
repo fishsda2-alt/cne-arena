@@ -45,6 +45,7 @@ cnrank/
 ├── register.html            선수 등록 — 아이콘 인증 + 입력 폼 + 제출
 ├── edit.html                정보 수정 — 선수 본인이 닉네임·지역·포지션·소속 변경
 ├── remove.html              등록 삭제 — 선수 본인이 랭킹에서 내림 (종목별/전체)
+├── teams.html               소속·지역 랭킹 — 학교·클럽/시·군 단위 평균 티어순
 ├── admin.html               운영 현황 — 명단·지역 분포 조회 + ★·승인 처리
 ├── pro.html                 프로 트라이아웃 희망 신청 안내 (이메일 양식)
 ├── css/style.css
@@ -58,6 +59,7 @@ cnrank/
 │   ├── admin.js             운영 현황 — 집계·명단·관리 동작
 │   ├── analytics.js         방문 집계 (설정했을 때만 켜짐)
 │   ├── detail.js            선수 상세 + 티어 변동 그래프 (라이브러리 없이 SVG)
+│   ├── teams.js             소속·지역 랭킹 (같은 랭킹 파일을 다르게 묶습니다)
 │   └── ranking.js           랭킹표 렌더링
 ├── scripts/                 (GitHub Actions가 실행, 외부 패키지 0개)
 │   ├── riot.py              API 클라이언트 + 요청 한도 제어
