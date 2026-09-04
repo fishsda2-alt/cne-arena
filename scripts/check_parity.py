@@ -9,6 +9,9 @@
 (선수는 안내받은 대로 바꿨는데 계속 "인증 실패"만 나옵니다)
 그래서 두 파일 중 하나라도 고치면 이 검사가 자동으로 돕니다.
 
+덤으로 self_edit.py 의 값 정리·번호 계산도 한 번 굴려 봅니다. 정규식이 깨져 있어도
+문법 검사로는 안 걸리고, 신청이 실제로 들어와야 터지기 때문입니다.
+
 사용법: python scripts/check_parity.py   (node 필요 — GitHub Actions에는 이미 있습니다)
 """
 
@@ -17,8 +20,10 @@ import os
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 
 from riot import edit_icon_id, expected_icon_id
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VERIFY_JS = os.path.join(ROOT, "js", "verify.js")
@@ -49,6 +54,30 @@ const run = new Function('cases', src + `
 `);
 console.log(JSON.stringify(run(cases)));
 """
+
+
+def smoke_test():
+    """self_edit 의 순수 함수가 실제로 굴러가는지 봅니다.
+
+    정규식이 깨져 있으면 여기서 잡힙니다. 한 번 겪은 일입니다 — 이스케이프가 한 겹
+    벗겨져 문자 클래스가 안 닫혔는데, 파일을 눈으로 보면 멀쩡해 보이고 **신청이
+    실제로 들어와야만** 터지는 상태였습니다. 문법 검사로는 안 걸립니다.
+    """
+    import self_edit
+    from riot import KST
+
+    dirty = "이름\t줄\n바꿈 \"따옴표\" '작은' `백틱` $달러 " + chr(92) + " 끝"
+    cleaned = self_edit.sanitize("name", dirty)
+    for ch in ("\n", "\t", '"', "'", "`", "$", chr(92)):
+        assert ch not in cleaned, f"{ch!r} 가 남았습니다: {cleaned!r}"
+    assert len(cleaned) <= self_edit.LIMITS["name"], cleaned
+
+    낮 = self_edit.accepted_icons("홍길동", "KR1", datetime(2026, 9, 4, 12, 0, tzinfo=KST))
+    새벽 = self_edit.accepted_icons("홍길동", "KR1", datetime(2026, 9, 4, 1, 0, tzinfo=KST))
+    assert len(낮) == 1, 낮
+    assert 낮 <= 새벽, (낮, 새벽)   # 새벽에는 어제 번호가 더해질 수 있습니다
+
+    print("자가 점검 통과: 값 정리·인증 번호 계산 정상")
 
 
 def build_cases():
@@ -87,6 +116,8 @@ def js_results(cases):
 
 
 def main():
+    smoke_test()
+
     cases = build_cases()
     py = python_results(cases)
     js = js_results(cases)

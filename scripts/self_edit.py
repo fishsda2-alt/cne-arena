@@ -10,6 +10,7 @@ Riot ID 변경은 이 경로에서 받지 않습니다. 계정이 바뀌면 puui
 사용법:
   python scripts/self_edit.py --riot-id "홍길동#KR1" --name 새닉네임 --position 정글
 옵션:
+  --clear-team    소속을 비웁니다 (빈 값은 "안 바꿈"이라 지울 때는 이 플래그가 필요)
   --skip-verify   아이콘 인증 없이 수정 (운영자가 오프라인으로 본인 확인을 끝낸 경우)
 """
 
@@ -40,6 +41,11 @@ POSITIONS = ["탑", "정글", "미드", "원딜", "서포터"]
 # 그 시간대에 한해 어제 번호도 인정합니다 (통과 가능한 번호가 늘어나므로 새벽에만).
 GRACE_UNTIL_HOUR = 3
 
+# 값에서 지워버릴 글자 — 줄바꿈·탭·따옴표·역슬래시 등 워크플로로 넘어가면 곤란한 것들.
+# 역슬래시는 chr(92)로 씁니다. 정규식 문자 클래스 안에 직접 적으면 이스케이프가
+# 한 겹 벗겨졌을 때 "[...\]" 가 되어 문자 클래스가 안 닫히고 조용히 깨집니다.
+STRIP_CHARS = frozenset("\r\n\t\"'`$" + chr(92))
+
 
 def read_json(path, fallback):
     try:
@@ -57,7 +63,7 @@ def write_json(path, obj):
 
 def sanitize(field, value):
     """줄바꿈·따옴표 등을 지우고 길이를 자릅니다. 반환값이 비면 '바꾸지 않음'입니다."""
-    value = re.sub(r"[\r\n\t\"'`$\]", " ", value)
+    value = "".join(" " if ch in STRIP_CHARS else ch for ch in value)
     value = re.sub(r"\s+", " ", value).strip()
     return value[: LIMITS[field]]
 

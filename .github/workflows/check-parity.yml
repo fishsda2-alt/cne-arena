@@ -4,11 +4,14 @@ name: 아이콘 번호 대조
 # 각각 계산됩니다. 둘이 어긋나면 아무도 인증을 통과하지 못하는데, 화면에는
 # "인증 실패"만 나와서 원인을 찾기가 매우 어렵습니다.
 # 그 두 파일이 바뀔 때마다 자동으로 대조합니다. (API 키도, 비용도 들지 않습니다)
+# 함께 self_edit.py 의 값 정리·번호 계산도 한 번 굴려 봅니다 — 정규식이 깨져 있으면
+# 문법 검사로는 안 걸리고 신청이 실제로 들어와야 터지기 때문입니다.
 on:
   push:
     paths:
       - "js/verify.js"
       - "scripts/riot.py"
+      - "scripts/self_edit.py"
       - "scripts/check_parity.py"
   workflow_dispatch:
 

@@ -131,7 +131,7 @@ function doGet() {
 }
 
 function clean(s) {
-  return s.replace(/[\r\n\t"'`$\]/g, ' ').replace(/\s+/g, ' ').trim();
+  return s.replace(/[\r\n\t"'`$\\]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function ok() {
