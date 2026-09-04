@@ -312,6 +312,42 @@ tbody tr:hover { background: rgba(79, 140, 255, 0.06); }
   font-size: 0.9rem; color: var(--text-dim);
 }
 
+/* 푸터의 브랜드 버튼 — 운영 현황 페이지 입구 */
+.brand-btn {
+  display: inline-block; text-decoration: none;
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 18px; color: var(--text-dim);
+  font-weight: 800; letter-spacing: 1px; font-size: 0.85rem;
+}
+.brand-btn span { color: var(--accent); }
+.brand-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* ----- 운영 현황 ----- */
+.admin-grid { gap: 0 16px; }
+.bars { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.bar { display: grid; grid-template-columns: 88px 1fr 38px; align-items: center; gap: 10px; }
+.bar .bl { font-size: 0.86rem; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .bt { background: var(--surface-2); border-radius: 999px; height: 10px; overflow: hidden; }
+.bar .bf { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.bar .bn { font-size: 0.86rem; font-weight: 700; text-align: right; }
+
+.chip {
+  display: inline-block; font-size: 0.76rem; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text-dim); background: var(--surface-2);
+  white-space: nowrap;
+}
+.chip.ok { color: var(--up); border-color: rgba(76,217,123,.4); }
+.chip.warn { color: var(--gold); border-color: rgba(213,165,74,.4); }
+.ops { white-space: nowrap; }
+.ops .btn { margin-right: 4px; }
+#tbody .nm { font-weight: 600; display: block; }
+#tbody .id { color: var(--text-dim); font-size: 0.8rem; display: block; }
+
+@media (max-width: 720px) {
+  .admin-grid { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 70px 1fr 32px; }
+}
+
 .site-footer {
   border-top: 1px solid var(--border); padding: 20px 0;
   color: var(--text-dim); font-size: 0.85rem; text-align: center;

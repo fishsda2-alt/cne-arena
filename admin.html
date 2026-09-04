@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>운영 현황 — 충남 아마추어 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="edit.html">정보 수정</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>운영 현황</h1>
+      <p>등록 명단과 지역 분포를 한눈에 보고, ★ 표시와 승인을 바로 처리합니다.</p>
+    </div>
+
+    <div class="notice">
+      <strong>이 페이지는 누구나 열 수 있습니다.</strong> 서버가 없는 구조라 감출 방법이 없습니다.
+      다만 여기 보이는 값은 전부 <code>data/players.json</code>에 이미 공개된 것이라
+      새로 드러나는 정보는 없습니다.
+      <strong>바꾸는 일(★·승인)만 관리 키를 아는 사람이 할 수 있습니다.</strong>
+    </div>
+
+    <!-- ── 요약 ──────────────────────────────────────────── -->
+    <section class="stats">
+      <div class="stat"><div class="k">총 등록 인원</div><div class="v" id="sTotal">-</div></div>
+      <div class="stat"><div class="k">승인 완료</div><div class="v" id="sApproved">-</div></div>
+      <div class="stat"><div class="k">승인 대기</div><div class="v" id="sPending">-</div></div>
+      <div class="stat"><div class="k">★ 프로 지망</div><div class="v" id="sPro">-</div></div>
+      <div class="stat"><div class="k">누적 방문</div><div class="v small" id="sVisits">미설정</div></div>
+    </section>
+
+    <div class="grid-2 admin-grid">
+      <section class="card">
+        <h2>종목별 등록</h2>
+        <div id="byGame" class="bars"></div>
+      </section>
+
+      <section class="card">
+        <h2>지역별 등록</h2>
+        <div id="byRegion" class="bars"></div>
+      </section>
+    </div>
+
+    <!-- ── 관리 키 ───────────────────────────────────────── -->
+    <section class="card">
+      <h2>관리 키</h2>
+      <p>★ 표시와 승인을 바꾸려면 관리 키가 필요합니다.
+        입력한 키는 <strong>이 탭에서만</strong> 기억하고, 창을 닫으면 사라집니다.</p>
+      <div class="field" style="margin-top:12px">
+        <label for="fKey">관리 키</label>
+        <input type="password" id="fKey" autocomplete="off" placeholder="Apps Script 속성에 넣어둔 값">
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="keyBtn" type="button">이 탭에서 기억하기</button>
+        <button class="btn ghost" id="keyClear" type="button">지우기</button>
+      </div>
+      <p class="copied" id="keyMsg"></p>
+      <div class="notice" id="keySetup">
+        아직 준비가 안 됐다면 Apps Script 프로젝트 설정 → 스크립트 속성에
+        <code>ADMIN_KEY</code> 를 추가하세요. <strong>20자 이상의 무작위 문자열</strong>을 쓰시고,
+        이 값은 저장소·문서 어디에도 적지 마세요.
+      </div>
+    </section>
+
+    <!-- ── 명단 ──────────────────────────────────────────── -->
+    <section class="card">
+      <h2>등록 명단 <span id="count" style="font-weight:400; color:var(--text-dim)"></span></h2>
+
+      <div class="controls" style="margin-top:12px">
+        <input type="search" id="q" placeholder="이름 · Riot ID · 소속 검색">
+        <select id="fGame"><option value="">전체 종목</option></select>
+        <select id="fRegion"><option value="">전체 지역</option></select>
+        <select id="fState">
+          <option value="">전체 상태</option>
+          <option value="pending">승인 대기만</option>
+          <option value="pro">★ 프로 지망만</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>선수</th>
+              <th class="hide-sm">지역</th>
+              <th class="hide-sm">소속</th>
+              <th>종목 · 포지션</th>
+              <th>상태</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="empty">불러오는 중…</div>
+      </div>
+
+      <div class="result-box" id="okBox"><h3>처리했습니다</h3><p id="okMsg"></p></div>
+      <div class="result-box error" id="ngBox"><h3>처리하지 못했습니다</h3><p id="ngMsg"></p></div>
+
+      <div class="notice">
+        <strong>삭제는 여기서 하지 않습니다.</strong> 되돌릴 수 없는 일이라
+        Actions 탭의 <strong>선수 관리 → remove</strong> 에만 두었습니다.
+        선수 본인은 사이트의 <a href="remove.html">등록 삭제</a> 페이지를 쓸 수 있습니다.
+      </div>
+    </section>
+
+    <p class="updated" id="updated"></p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>데이터 출처 Riot Games API</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

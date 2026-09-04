@@ -1,0 +1,75 @@
+name: 사이트 운영 처리
+
+# 운영 현황 페이지(admin.html)에서 ★ 표시나 승인을 바꾸면 Apps Script가 깨웁니다.
+#
+# 정적 사이트에는 비밀을 숨길 수 없으므로, 관리 키는 Apps Script 속성(ADMIN_KEY)에만
+# 두고 거기서 대조합니다. 그 대조를 통과한 요청만 이 워크플로에 도달합니다.
+#
+# 되돌릴 수 없는 삭제(remove)는 일부러 받지 않습니다 — Actions 탭에만 두었습니다.
+on:
+  repository_dispatch:
+    types: [admin-player]
+
+concurrency:
+  group: ranking-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 처리
+        env:
+          IN_OP: ${{ github.event.client_payload.op }}
+          IN_WHO: ${{ github.event.client_payload.who }}
+        run: |
+          set -o pipefail
+          # 받을 수 있는 작업만 통과시킵니다 (삭제는 여기로 오지 않습니다).
+          case "$IN_OP" in
+            pro|unpro|approve|hold) ;;
+            *) echo "받을 수 없는 작업입니다: $IN_OP" >&2; exit 1 ;;
+          esac
+          python scripts/manage_player.py "$IN_OP" --who "$IN_WHO" 2>&1 | tee /tmp/admin-out.txt
+
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 운영 처리 결과"
+            echo ""
+            echo '```'
+            cat /tmp/admin-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ★ 표시와 승인 여부는 랭킹 파일에도 들어 있으므로 다시 만들어야 화면에 반영됩니다.
+      - name: 커밋 후 랭킹 반영
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/players.json
+          git diff --staged --quiet || git commit -m "chore: 운영 현황에서 선수 상태 변경"
+          python scripts/update_ranking.py
+          git add data/ranking.json data/history
+          git diff --staged --quiet || git commit -m "chore: 랭킹 갱신(운영 처리)"
+          git push
+
+  # 데이터 커밋만으로는 Pages 배포가 걸리지 않으므로 직접 호출합니다.
+  deploy:
+    needs: admin
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

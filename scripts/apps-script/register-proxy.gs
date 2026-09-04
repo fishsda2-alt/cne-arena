@@ -15,6 +15,9 @@
  *      GITHUB_TOKEN : GitHub 개인 액세스 토큰 (아래 참고)
  *      GITHUB_OWNER : GitHub 아이디            (예: fishsda2-alt)
  *      GITHUB_REPO  : 저장소 이름              (예: cne-arena)
+ *      ADMIN_KEY    : 운영 현황 페이지에서 ★·승인을 바꿀 때 쓰는 열쇠 (선택)
+ *                     20자 이상 무작위 문자열. 저장소·문서 어디에도 적지 마세요.
+ *                     넣지 않으면 그 기능만 잠기고 등록·수정·삭제는 그대로 됩니다.
  * 4. 우측 상단 [배포] → [새 배포] → 유형 [웹 앱]
  *      실행 계정: 나
  *      액세스 권한: 모든 사용자          ← 반드시 이걸로
@@ -47,6 +50,7 @@ function doPost(e) {
     var action = String(data.action || '');
     var isEdit = action === 'edit';
     var isRemove = action === 'remove';
+    var isAdmin = action === 'admin';
 
     // 종목 코드. 빈 값은 등록·수정에서는 롤, 삭제에서는 '전체 삭제'를 뜻합니다.
     var game = String(data.game || '').trim();
@@ -58,6 +62,8 @@ function doPost(e) {
     var position = String(data.position || '').trim();
     var team = String(data.team || '').trim();
     var clearTeam = data.clearTeam === true;   // 소속을 비우려는 신청 (빈 값 = '안 바꿈'과 구분)
+
+    if (isAdmin) return handleAdmin(data);
 
     // ── 검증 ──
     if (!/^.+#.+$/.test(riotId)) return fail('Riot ID 형식이 올바르지 않습니다.');
@@ -134,6 +140,73 @@ function doPost(e) {
     console.error(err);
     return fail('처리 중 오류가 발생했습니다.');
   }
+}
+
+/**
+ * 운영 현황 페이지의 ★·승인 처리.
+ *
+ * 정적 사이트에는 비밀을 숨길 수 없으므로, 열쇠는 이 스크립트 속성에만 두고
+ * 운영자가 그때그때 입력해 보냅니다. 여기서 대조한 뒤에만 GitHub을 깨웁니다.
+ * 되돌릴 수 없는 삭제는 일부러 넣지 않았습니다 — Actions 탭에만 있습니다.
+ */
+function handleAdmin(data) {
+  var props = PropertiesService.getScriptProperties();
+  var expected = props.getProperty('ADMIN_KEY');
+  if (!expected) {
+    return fail('관리 키가 설정돼 있지 않습니다. Apps Script 속성에 ADMIN_KEY 를 추가하세요.');
+  }
+
+  var given = String(data.adminKey || '');
+  // 열쇠를 대조합니다. 틀린 시도는 횟수를 제한해 무차별 대입을 막습니다.
+  if (!withinAdminTries()) {
+    return fail('시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.');
+  }
+  if (given !== expected) {
+    console.warn('관리 키 불일치');
+    return fail('관리 키가 올바르지 않습니다.');
+  }
+
+  var op = String(data.op || '');
+  if (['pro', 'unpro', 'approve', 'hold'].indexOf(op) < 0) {
+    return fail('처리할 수 없는 작업입니다.');
+  }
+  var who = clean(String(data.who || '').trim());
+  if (!who || who.length > 40) return fail('대상 선수가 올바르지 않습니다.');
+
+  var owner = props.getProperty('GITHUB_OWNER');
+  var repo = props.getProperty('GITHUB_REPO');
+  var token = props.getProperty('GITHUB_TOKEN');
+  if (!owner || !repo || !token) return fail('서버 설정이 완료되지 않았습니다.');
+
+  var res = UrlFetchApp.fetch(
+    'https://api.github.com/repos/' + owner + '/' + repo + '/dispatches',
+    {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
+      payload: JSON.stringify({
+        event_type: 'admin-player',
+        client_payload: { op: op, who: who }
+      }),
+      muteHttpExceptions: true
+    }
+  );
+  if (res.getResponseCode() !== 204) {
+    console.error('GitHub dispatch 실패: ' + res.getResponseCode() + ' ' + res.getContentText());
+    return fail('서버에 전달하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  }
+  console.log('운영 처리: ' + op + ' / ' + who);
+  return ok();
+}
+
+/** 관리 키 시도 횟수 제한 (10분에 20회) */
+function withinAdminTries() {
+  var cache = CacheService.getScriptCache();
+  var key = 'admin-' + Math.floor(Date.now() / 600000);
+  var n = Number(cache.get(key) || 0);
+  if (n >= 20) return false;
+  cache.put(key, String(n + 1), 900);
+  return true;
 }
 
 /** 브라우저가 주소를 직접 열었을 때 */
