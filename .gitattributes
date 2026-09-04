@@ -2,3 +2,6 @@
 * text=auto eol=lf
 *.ps1 text eol=crlf
 *.bat text eol=crlf
+
+# Apps Script 코드는 메모장에서 열어 복사하는 일이 많아 CRLF로 둡니다
+*.gs text eol=crlf
