@@ -71,3 +71,11 @@ jobs:
             git commit -m "chore: 선수 ${{ inputs.action }} — $IN_WHO"
             git push
           fi
+
+  deploy:
+    needs: manage
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

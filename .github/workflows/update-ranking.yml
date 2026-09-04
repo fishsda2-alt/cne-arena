@@ -56,3 +56,11 @@ jobs:
             git commit -m "chore: 랭킹 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
             git push
           fi
+
+  deploy:
+    needs: update
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

@@ -101,3 +101,11 @@ jobs:
             git commit -m "chore: 랭킹 갱신(선수 등록)"
             git push
           fi
+
+  deploy:
+    needs: add
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml
