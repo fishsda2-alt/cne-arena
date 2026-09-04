@@ -1,0 +1,82 @@
+name: 사이트 정보 수정
+
+# 정보 수정 페이지에서 선수가 제출하면 Google Apps Script가 이 워크플로를 깨웁니다.
+# (Apps Script만 토큰을 가지고 있으므로 아무나 호출할 수 없습니다)
+#
+# 등록과 마찬가지로 아이콘 인증을 통과해야만 반영됩니다. 다만 수정용 아이콘 번호는
+# 날짜마다 바뀝니다 — 등록 때 맞춰둔 아이콘을 그대로 두고 있는 계정을 남이 고치지
+# 못하게 하기 위해서입니다 (scripts/riot.py 의 edit_icon_id 주석 참고).
+#
+# 바꿀 수 있는 항목은 표시 닉네임·지역·주 포지션·소속뿐입니다.
+# Riot ID 변경은 기록 이전 문제가 있어 이 경로로 받지 않습니다.
+on:
+  repository_dispatch:
+    types: [edit-player]
+
+concurrency:
+  group: ranking-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 아이콘 인증 후 정보 수정
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          IN_RIOT_ID: ${{ github.event.client_payload.riotId }}
+          IN_NAME: ${{ github.event.client_payload.nickname }}
+          IN_REGION: ${{ github.event.client_payload.region }}
+          IN_POSITION: ${{ github.event.client_payload.position }}
+          IN_TEAM: ${{ github.event.client_payload.team }}
+          IN_CLEAR_TEAM: ${{ github.event.client_payload.clearTeam }}
+        run: |
+          set -o pipefail
+          # 빈 소속은 "안 바꿈"이라, 지우려면 별도 플래그로 알려야 합니다.
+          CLEAR=""
+          if [ "$IN_CLEAR_TEAM" = "true" ]; then CLEAR="--clear-team"; fi
+          python scripts/self_edit.py \
+            --riot-id "$IN_RIOT_ID" \
+            --name "$IN_NAME" \
+            --region "$IN_REGION" \
+            --position "$IN_POSITION" \
+            --team "$IN_TEAM" $CLEAR 2>&1 | tee /tmp/edit-out.txt
+
+      # 로그를 펼치지 않아도 실행 요약 화면에서 결과를 바로 볼 수 있게 합니다.
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 정보 수정 결과"
+            echo ""
+            echo '```'
+            cat /tmp/edit-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # self_edit.py가 ranking.json까지 고쳐두므로 갱신(API 호출)은 필요 없습니다.
+      - name: 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/players.json data/ranking.json
+          git diff --staged --quiet || git commit -m "chore: 선수 본인 정보 수정"
+          git push
+
+  # 데이터 커밋만으로는 Pages 배포가 걸리지 않으므로 직접 호출합니다.
+  deploy:
+    needs: edit
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

@@ -12,11 +12,14 @@ import time
 import urllib.parse
 import zlib
 from collections import deque
+from datetime import datetime, timedelta, timezone
 
 # 플랫폼 라우팅: 소환사/리그 API (한국 서버)
 PLATFORM_HOST = os.environ.get("RIOT_PLATFORM", "kr") + ".api.riotgames.com"
 # 지역 라우팅: 계정(Riot ID) API
 REGION_HOST = os.environ.get("RIOT_REGION", "asia") + ".api.riotgames.com"
+
+KST = timezone(timedelta(hours=9))
 
 # 본인 인증용 프로필 아이콘 후보 (0~28번은 계정 생성 시 누구나 가진 기본 아이콘)
 VERIFY_ICONS = list(range(0, 29))
@@ -57,6 +60,26 @@ def expected_icon_id(game_name, tag_line):
     """
     digest = zlib.crc32(normalize_riot_id(game_name, tag_line).encode("utf-8"))
     return VERIFY_ICONS[digest % len(VERIFY_ICONS)]
+
+
+def kst_today():
+    """KST 기준 오늘 날짜 (YYYY-MM-DD)"""
+    return datetime.now(KST).date().isoformat()
+
+
+def edit_icon_id(game_name, tag_line, day=None):
+    """
+    정보 수정용 아이콘 번호 — 등록용과 달리 KST 날짜마다 바뀝니다.
+
+    등록용 번호는 Riot ID만으로 정해져 영원히 같습니다. 등록은 1회성이라 괜찮지만,
+    수정은 반복되는 행위라 사정이 다릅니다. 인증 후 아이콘을 되돌리지 않은 선수가 있으면
+    Riot ID만 아는 다른 사람이 수정 신청을 그냥 통과시킬 수 있습니다.
+    그래서 날짜를 섞어 매일 다른 번호가 나오게 하고, 등록용 번호와도 겹치지 않게 합니다.
+    (js/verify.js의 editIconId와 같은 결과를 냅니다)
+    """
+    day = day or kst_today()
+    key = f"{normalize_riot_id(game_name, tag_line)}|{day}|edit"
+    return VERIFY_ICONS[zlib.crc32(key.encode("utf-8")) % len(VERIFY_ICONS)]
 
 
 class RiotAPI:

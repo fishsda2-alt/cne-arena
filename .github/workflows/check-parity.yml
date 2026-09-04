@@ -1,0 +1,39 @@
+name: 아이콘 번호 대조
+
+# 인증 아이콘 번호는 js/verify.js(화면 안내)와 scripts/riot.py(실제 대조) 두 곳에서
+# 각각 계산됩니다. 둘이 어긋나면 아무도 인증을 통과하지 못하는데, 화면에는
+# "인증 실패"만 나와서 원인을 찾기가 매우 어렵습니다.
+# 그 두 파일이 바뀔 때마다 자동으로 대조합니다. (API 키도, 비용도 들지 않습니다)
+on:
+  push:
+    paths:
+      - "js/verify.js"
+      - "scripts/riot.py"
+      - "scripts/check_parity.py"
+  workflow_dispatch:
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 번호 대조
+        run: |
+          set -o pipefail
+          python scripts/check_parity.py 2>&1 | tee /tmp/parity.txt
+
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 아이콘 번호 대조 결과"
+            echo ""
+            echo '```'
+            cat /tmp/parity.txt 2>/dev/null || echo "(검사가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

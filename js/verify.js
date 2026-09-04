@@ -35,3 +35,21 @@ function expectedIconId(gameName, tagLine) {
   const key = `${gameName.trim().toLowerCase()}#${tagLine.trim().replace(/^#/, "").toLowerCase()}`;
   return VERIFY_ICONS[crc32(key) % VERIFY_ICONS.length];
 }
+
+/** KST 기준 오늘 날짜 (YYYY-MM-DD) — 보는 사람의 시간대와 무관하게 같은 값을 냅니다 */
+function kstDateString(now) {
+  const t = (now || new Date()).getTime() + 9 * 60 * 60 * 1000;
+  return new Date(t).toISOString().slice(0, 10);
+}
+
+/**
+ * 정보 수정용 아이콘 번호 — scripts/riot.py 의 edit_icon_id 와 동일한 결과를 냅니다.
+ *
+ * 등록용 번호는 Riot ID마다 고정이라, 인증 후 아이콘을 되돌리지 않은 선수는
+ * Riot ID만 아는 사람에게 수정 신청을 통과당할 수 있습니다. 수정은 반복되는 행위이므로
+ * 날짜를 섞어 매일 다른 번호가 나오게 했습니다. (등록용 번호와도 겹치지 않습니다)
+ */
+function editIconId(gameName, tagLine, day) {
+  const base = `${gameName.trim().toLowerCase()}#${tagLine.trim().replace(/^#/, "").toLowerCase()}`;
+  return VERIFY_ICONS[crc32(`${base}|${day || kstDateString()}|edit`) % VERIFY_ICONS.length];
+}

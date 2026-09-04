@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>정보 수정 — 충남 아마추어 LoL 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CN <span>RANK</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="edit.html" class="active">정보 수정</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>내 정보 수정</h1>
+      <p>표시 닉네임·지역·주 포지션·소속을 본인이 직접 바꿀 수 있습니다.</p>
+    </div>
+
+    <!-- ── 1단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">1</span> 내 정보와 오늘의 인증 번호 확인</h2>
+      <p>등록할 때 쓴 Riot ID를 입력하세요. 지금 등록된 내용과 <strong>오늘 쓸 인증 아이콘 번호</strong>가 나옵니다.</p>
+
+      <div class="field" style="margin-top:14px">
+        <label for="riotId">Riot ID (소환사명 + 태그)</label>
+        <input type="text" id="riotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+      </div>
+      <button class="btn" id="checkBtn">내 정보 불러오기</button>
+      <p class="hint" id="hint">형식이 올바르지 않습니다. <strong>이름#태그</strong> 형태로 입력해 주세요. (예: 홍길동#KR1)</p>
+
+      <div class="icon-result" id="result">
+        <img id="iconImg" src="" alt="인증용 프로필 아이콘">
+        <div>
+          <div class="n"><span id="iconNo"></span>번 아이콘</div>
+          <div class="t">게임에서 이 아이콘으로 바꾼 뒤 3단계를 작성하세요.</div>
+        </div>
+      </div>
+
+      <div class="notice" id="curBox" style="display:none">
+        <strong>현재 등록된 내용</strong>
+        <div id="curInfo" style="margin-top:6px"></div>
+      </div>
+
+      <div class="notice">
+        <strong>수정용 번호는 매일 바뀝니다.</strong> 등록할 때 안내받은 번호와도 다릅니다.
+        어제 안내받은 번호로는 통과하지 않으니, 오늘 위에 나온 번호로 바꿔 주세요.
+        <br>(등록용 번호는 계정마다 고정이라, 그걸 그대로 두면 Riot ID를 아는 다른 사람이
+        남의 정보를 고칠 수 있습니다. 그래서 수정은 매일 다른 번호를 씁니다)
+      </div>
+    </section>
+
+    <!-- ── 2단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">2</span> 게임에서 아이콘 변경</h2>
+      <ol>
+        <li>롤 클라이언트 실행 → 우측 상단 <strong>내 프로필</strong> 클릭</li>
+        <li>프로필 아이콘 클릭 → 위에서 안내된 번호의 <strong>기본 아이콘</strong> 선택</li>
+        <li>로비 화면으로 나오기 (변경 사항이 서버에 반영됩니다)</li>
+      </ol>
+      <p style="margin-top:8px">아이콘 변경이 조회에 반영되기까지 <strong>몇 분</strong> 걸릴 수 있습니다.
+        수정이 끝나면 원하는 아이콘으로 되돌려도 됩니다.</p>
+    </section>
+
+    <!-- ── 3단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">3</span> 바꿀 내용 입력하기</h2>
+      <p>바꾸지 않을 항목은 <strong>그대로 두면 됩니다.</strong> 1단계에서 불러온 현재 값이 채워져 있습니다.</p>
+
+      <form id="editForm" novalidate>
+        <div class="field">
+          <label for="fRiotId">Riot ID <span class="req">필수</span></label>
+          <input type="text" id="fRiotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+          <p class="err" id="errRiotId">이름#태그 형태로 입력해 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label for="fNick">랭킹에 표시할 닉네임</label>
+          <input type="text" id="fNick" placeholder="본인이 원하는 대로 정하세요" maxlength="20" autocomplete="off">
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="fRegion">지역</label>
+            <select id="fRegion"><option value="">선택하세요</option></select>
+          </div>
+          <div class="field">
+            <label for="fPosition">주 포지션</label>
+            <select id="fPosition"><option value="">선택하세요</option></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fTeam">소속 <span class="opt">비우면 “소속 없음”이 됩니다</span></label>
+          <input type="text" id="fTeam" placeholder="학교 / 팀 / 클럽" maxlength="30" autocomplete="off">
+        </div>
+
+        <div class="field check">
+          <label>
+            <input type="checkbox" id="fIcon">
+            <span>오늘 안내된 번호로 <strong>프로필 아이콘을 변경했습니다</strong></span>
+          </label>
+          <p class="err" id="errIcon">아이콘을 먼저 변경해 주세요. 변경하지 않으면 수정이 거부됩니다.</p>
+        </div>
+
+        <p class="err" id="errNone">바뀐 항목이 없습니다. 하나 이상 고쳐 주세요.</p>
+
+        <button class="btn btn-lg" id="submitBtn" type="submit">수정 신청하기</button>
+      </form>
+
+      <div class="result-box" id="okBox">
+        <h3>접수되었습니다</h3>
+        <p id="okMsg"></p>
+      </div>
+      <div class="result-box error" id="ngBox">
+        <h3>수정에 실패했습니다</h3>
+        <p id="ngMsg"></p>
+      </div>
+
+      <div class="notice">
+        <strong>티어·전적은 바꿀 수 없습니다.</strong> Riot 서버에서 매일 새벽 자동으로 가져옵니다.
+        <br><strong>Riot ID를 바꾸셨다면</strong> 이 페이지로는 처리되지 않습니다.
+        계정이 달라지면 지금까지의 기록과 이어지지 않아 운영자 확인이 필요합니다 —
+        <span id="contact2"></span>로 문의해 주세요.
+        <br>정보 수정은 <strong>하루 한 번</strong>만 가능합니다.
+      </div>
+    </section>
+
+    <!-- ── 안내 ──────────────────────────────────────────── -->
+    <section class="card">
+      <h2>등록을 아예 취소하고 싶다면</h2>
+      <p>
+        <span id="contact"></span>로 Riot ID를 알려주시면 랭킹·기록·연락처 명단에서 모두 지웁니다.
+        삭제는 본인 확인 후 처리하며, 되돌릴 수 없습니다.
+      </p>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>솔로랭크 기준 · 데이터 출처 Riot Games API</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/verify.js"></script>
+<script src="js/edit.js"></script>
+</body>
+</html>
