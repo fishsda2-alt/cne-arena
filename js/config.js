@@ -16,7 +16,7 @@ const SITE = {
   //  · 비워두면 집계 스크립트를 아예 불러오지 않습니다 (요청도 나가지 않습니다).
   //  · 운영 현황의 '누적 방문' 숫자를 보려면 GoatCounter 사이트 설정에서
   //    "Make counter public" (또는 대시보드 공개)을 켜야 합니다. 안 켜도 집계는 됩니다.
-  goatcounter: ""
+  goatcounter: "cnrank"
 };
 
 /** 지역 필터 목록 (충남 시·군) */
