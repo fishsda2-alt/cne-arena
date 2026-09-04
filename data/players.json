@@ -1,6 +1,6 @@
 {
   "_사용법": "이 파일은 직접 고치지 말고 Actions 탭의 '선수 등록' / '선수 관리' 워크플로로 관리하세요. approved=false 인 선수는 랭킹에 나오지 않습니다.",
-  "updatedAt": "2026-09-04T23:14:55+09:00",
+  "updatedAt": "2026-09-05T00:00:45+09:00",
   "players": [
     {
       "id": "p001",
@@ -10,7 +10,7 @@
       "puuid": "DhrxtS6NV37EfcE_a2MPPkjV7wVbabYdf92UzxWy6MtONL0k1aiStuq1qsnDmT21OpQzKQ6FEBHlVw",
       "team": "ccon",
       "region": "아산",
-      "proAspirant": false,
+      "proAspirant": true,
       "approved": true,
       "verified": true,
       "registeredAt": "2026-09-04",
