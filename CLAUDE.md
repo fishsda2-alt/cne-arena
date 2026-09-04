@@ -84,6 +84,16 @@ GitHub은 `GITHUB_TOKEN`으로 만든 커밋으로는 다른 워크플로를 실
 `grep -nF '\' 파일` 로 확인하고, 원본이 있으면 `git show HEAD~1:파일` 과 대조하세요.
 `check_parity.py`의 자가 점검이 파이썬 쪽은 잡아 줍니다.
 
+**`hidden` 으로 감출 요소에 CSS 로 `display` 를 지정했는지 볼 것.**
+브라우저 기본값 `[hidden]{display:none}` 은 우선순위가 가장 낮아서,
+`.modal{display:flex}` 같은 클래스가 있으면 **그냥 무시됩니다.**
+실제로 상세 모달이 늘 떠 있는 채로 배포됐습니다.
+`css/style.css` 맨 위에 `[hidden]{display:none!important}` 을 두어 막았습니다.
+
+**감췄는지 확인할 때 `el.hidden` 을 믿지 말 것.**
+그 값은 속성일 뿐 실제로 안 보이는지와 다릅니다. 위 사고를 놓친 이유가 이것입니다.
+`getComputedStyle(el).display` 를 보거나 화면을 직접 보세요.
+
 **개인정보를 저장소에 넣지 말 것.**
 저장소도 Actions 실행 기록도 전부 공개됩니다. 실명·연락처·이메일·생년월일은
 구글 드라이브의 비공개 명단에만 두고, 저장소에는 `proAspirant` 플래그(★)만 둡니다.

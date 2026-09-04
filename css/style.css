@@ -16,6 +16,12 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* hidden 속성이 항상 이기게 합니다.
+   브라우저 기본값은 [hidden]{display:none} 인데 우선순위가 가장 낮아서,
+   .modal{display:flex} 처럼 display 를 지정한 클래스가 있으면 그냥 무시됩니다.
+   실제로 상세 모달이 늘 떠 있는 사고가 났습니다. */
+[hidden] { display: none !important; }
+
 body {
   font-family: "Segoe UI", "Malgun Gothic", "맑은 고딕", sans-serif;
   background: var(--bg);
