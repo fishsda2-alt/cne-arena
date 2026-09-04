@@ -76,7 +76,7 @@ def main():
             print(f"오류: 이미 등록된 Riot ID입니다 ({p['id']} / {p.get('name')})", file=sys.stderr)
             return 1
 
-    api = RiotAPI(os.environ.get("RIOT_API_KEY", "").strip())
+    api = RiotAPI(os.environ.get("RIOT_API_KEY", ""))
 
     try:
         account = api.account_by_riot_id(game_name, tag_line)

@@ -67,10 +67,22 @@ class RiotAPI:
                 "RIOT_API_KEY가 비어 있습니다. "
                 "GitHub 저장소 Settings > Secrets and variables > Actions 에 등록하세요."
             )
-        self.api_key = api_key
+        # 붙여넣을 때 딸려오는 공백·줄바꿈은 여기서 제거하되, 있었다는 사실은 기억합니다.
+        self.api_key = api_key.strip()
+        self._had_whitespace = api_key != self.api_key
         self.per_second = per_second
         self.per_two_min = per_two_min
         self._recent = deque()  # 최근 요청 시각
+
+    def key_shape(self):
+        """
+        키 값을 노출하지 않고 모양만 알려줍니다 (붙여넣기 실수 진단용).
+        실제 키는 절대 출력하지 않습니다 — 실행 기록은 공개됩니다.
+        """
+        k = self.api_key
+        prefix = "RGAPI-로 시작" if k.startswith("RGAPI-") else "RGAPI-로 시작하지 않음"
+        extra = ", 앞뒤에 공백/줄바꿈이 섞여 있었음" if self._had_whitespace else ""
+        return f"길이 {len(k)}자, {prefix}{extra}"
 
     # ---------- 내부 ----------
 
@@ -105,13 +117,15 @@ class RiotAPI:
                 if e.code == 404:
                     raise NotFound(404, path)
                 if e.code in (401, 403):
-                    # 개발용 키는 24시간마다 만료됩니다. 가장 흔한 실패 원인이라 따로 안내합니다.
+                    # 키 만료·오입력이 가장 흔한 실패 원인이라 진단 정보를 함께 보여줍니다.
                     raise RiotError(
                         e.code,
-                        "API 키가 만료되었거나 유효하지 않습니다. "
-                        "developer.riotgames.com 에서 키를 다시 복사해 "
-                        "저장소 Settings > Secrets and variables > Actions 의 "
-                        "RIOT_API_KEY 값을 교체하세요. (개발용 키는 24시간마다 만료됩니다)",
+                        "API 키가 거부되었습니다. "
+                        f"[Secret에 들어있는 값: {self.key_shape()}] "
+                        "정상값은 'RGAPI-'로 시작하는 42자입니다. "
+                        "모양이 다르면 붙여넣기가 잘못된 것이고, "
+                        "모양이 맞는데도 거부되면 키를 재발급한 뒤 Secret을 "
+                        "다시 교체하지 않은 것입니다 (재발급하면 이전 키는 즉시 무효).",
                     )
                 if e.code == 429 and attempt < retries:
                     try:

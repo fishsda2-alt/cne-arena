@@ -146,7 +146,7 @@ def load_snapshot_near(target_date, tolerance=4):
 
 def main():
     api = RiotAPI(
-        os.environ.get("RIOT_API_KEY", "").strip(),
+        os.environ.get("RIOT_API_KEY", ""),
         per_second=int(os.environ.get("RIOT_PER_SEC", "20")),
         per_two_min=int(os.environ.get("RIOT_PER_2MIN", "100")),
     )
