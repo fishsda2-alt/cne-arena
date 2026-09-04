@@ -32,7 +32,39 @@ async function init() {
     showKeyMsg("이 탭에 관리 키가 기억돼 있습니다.");
   }
 
+  loadVisits();
   await load();
+}
+
+/* ───────── 방문 집계 ───────── */
+
+/**
+ * 누적 방문 — GoatCounter 의 공개 카운터에서 읽습니다.
+ *
+ * 설정이 없거나 공개가 꺼져 있으면 숫자 대신 안내를 보여줍니다.
+ * 집계 자체는 공개와 무관하게 돌아가고, 이 숫자만 못 읽습니다.
+ */
+async function loadVisits() {
+  const code = SITE.goatcounter;
+  const box = $("#sVisits");
+  if (!code) {
+    box.textContent = "미설정";
+    box.title = "js/config.js 의 SITE.goatcounter 를 채우면 켜집니다.";
+    return;
+  }
+
+  const dash = `https://${code}.goatcounter.com`;
+  try {
+    const res = await fetch(`${dash}/counter/TOTAL.json`);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const n = data.count_unique || data.count;
+    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">${esc(n)}</a>`;
+  } catch (e) {
+    // 카운터 공개가 꺼져 있으면 여기로 옵니다. 대시보드 링크만 걸어 둡니다.
+    box.innerHTML = `<a href="${esc(dash)}" target="_blank" rel="noopener">대시보드</a>`;
+    box.title = "숫자를 여기 표시하려면 GoatCounter 설정에서 카운터 공개를 켜세요.";
+  }
 }
 
 /* ───────── 관리 키 ───────── */

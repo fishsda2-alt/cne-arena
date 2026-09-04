@@ -10,7 +10,13 @@ const SITE = {
   //  · 비워두면 입력값이 채워진 이메일 창이 열리고, 운영자가 수동으로 등록합니다.
   submitUrl: "https://script.google.com/macros/s/AKfycbwSA4iSJLt3cbQFWT4YWTgbIW7mmo3F6-GlQ1FQzIHAH-XA35ddta2iH0vcD4lHXEjIHw/exec",
   // 운영자 GitHub 저장소 (등록 신청 안내용, 비워도 됩니다)
-  repoUrl: ""
+  repoUrl: "",
+  // 방문 집계 (GoatCounter) — goatcounter.com 에서 만든 코드만 적습니다.
+  //   예) 주소가 https://cnrank.goatcounter.com 이면  "cnrank"
+  //  · 비워두면 집계 스크립트를 아예 불러오지 않습니다 (요청도 나가지 않습니다).
+  //  · 운영 현황의 '누적 방문' 숫자를 보려면 GoatCounter 사이트 설정에서
+  //    "Make counter public" (또는 대시보드 공개)을 켜야 합니다. 안 켜도 집계는 됩니다.
+  goatcounter: ""
 };
 
 /** 지역 필터 목록 (충남 시·군) */
