@@ -88,7 +88,13 @@ GitHub 토큰은 2027-06-30 만료 — 그때 재발급 후 Apps Script 속성�
 - 자동 커밋과 충돌하면 `git pull --rebase` 후 푸시.
 - 로컬 미리보기: `start-server.bat` → <http://localhost:8189>
   예시 데이터로 보려면 `?sample` 을 붙입니다.
-- 파이썬이 설치돼 있지 않은 환경일 수 있습니다. 스크립트 검증은 Actions에서 합니다.
+- 파이썬이 없는 환경일 수 있습니다. 그때는 스크립트 검증을 Actions에서 합니다.
+- 로컬 검증(파이썬이 있으면):
+  `PYTHONUTF8=1 python scripts/check_parity.py` — 아이콘 번호 대조 + self_edit 자가 점검.
+  `PYTHONUTF8=1`을 빼면 Windows 콘솔에서 한글이 깨집니다. 번호 대조에는 node도 필요합니다
+  (없으면 자가 점검만 하고 안내를 냅니다). 없어도 푸시하면 Actions가 대신 돌립니다.
+- `self_edit.py`·`manage_player.py`는 `--skip-verify`로 API 키 없이 시험할 수 있습니다.
+  data/를 실제로 고치므로 끝나면 `git checkout -- data/` 로 되돌리세요.
 - `.gs`·`.ps1`·`.bat`은 CRLF로 유지 (메모장에서 한 줄로 보이는 문제 방지).
   `serve.ps1`은 UTF-8 **BOM 포함**이어야 Windows PowerShell이 한글을 읽습니다.
 

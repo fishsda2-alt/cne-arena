@@ -104,10 +104,19 @@ def js_results(cases):
             json.dump(cases, f, ensure_ascii=False)
         with open(harness_path, "w", encoding="utf-8") as f:
             f.write(HARNESS)
-        out = subprocess.run(
-            ["node", harness_path, cases_path, VERIFY_JS],
-            capture_output=True, text=True, encoding="utf-8",
-        )
+        try:
+            out = subprocess.run(
+                ["node", harness_path, cases_path, VERIFY_JS],
+                capture_output=True, text=True, encoding="utf-8",
+            )
+        except FileNotFoundError:
+            print("node를 찾을 수 없습니다. 이 대조는 js/verify.js를 실제로 돌려 보므로 node가 필요합니다.",
+                  file=sys.stderr)
+            print("  · GitHub Actions에는 이미 있으므로, 그냥 푸시하면 자동으로 대조됩니다.",
+                  file=sys.stderr)
+            print("  · 이 컴퓨터에서도 돌리려면: winget install OpenJS.NodeJS.LTS",
+                  file=sys.stderr)
+            return None
     if out.returncode != 0:
         print("node 실행 실패:", file=sys.stderr)
         print(out.stderr.strip(), file=sys.stderr)
