@@ -34,6 +34,15 @@
   ★·승인 같은 쓰기만 Apps Script 속성 `ADMIN_KEY` 로 잠급니다. 삭제는 넣지 않았습니다.
   관리 버튼은 `?manage` 또는 맨 아래 '운영자 도구'로 폅니다(화면 정리일 뿐 잠금 아님).
   **운영 안내 문구를 화면에 두지 마세요** — 방문자가 볼 내용이 아닙니다. 설명은 README에.
+- `assets/og.png` — 링크 공유용 대표 이미지 (`scripts/make_og.py` 로 다시 만듭니다)
+
+**사이트 주소를 바꾸면 같이 고쳐야 하는 곳**
+공유 미리보기 태그(`og:url`·`og:image`·`canonical`)는 **절대 주소**여야 해서
+각 HTML의 `<head>`에 박혀 있습니다. 크롤러는 자바스크립트를 실행하지 않아
+`config.js`에서 읽어올 수 없습니다. 주소를 바꾸면 `scripts/make_og.py` 의 BASE 와
+각 페이지 head 를 함께 고치세요. (그 밖에 Apps Script 의 `GITHUB_REPO`,
+Riot 제품 URL 두 개와 `riot.txt`, CLAUDE.md 상단 주소도 함께)
+
 - `scripts/apps-script/register-proxy.gs` — 구글 Apps Script에 붙여넣는 중계 코드
   (등록·수정 둘 다 여기를 지납니다. 고친 뒤 **배포 관리 → 새 버전**으로 다시 배포해야 반영됩니다)
 
