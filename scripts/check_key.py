@@ -21,9 +21,11 @@ def main():
         return 1
 
     api = RiotAPI(raw)
-    shape = api.key_shape()
-    print(f"Secret 상태 : {shape}")
+    print(f"Secret 상태 : {api.key_shape()}")
     print("정상 형태   : 길이 42자, RGAPI-로 시작")
+    print(f"Secret 지문 : {api.key_fingerprint()}")
+    print("             ↑ developer.riotgames.com 앱 화면의 API Key 앞뒤와 비교해 보세요.")
+    print("               다르면 Secret에 옛날 키(또는 만료된 개발용 키)가 들어 있는 것입니다.")
 
     looks_ok = len(api.api_key) == 42 and api.api_key.startswith("RGAPI-")
     if not looks_ok:

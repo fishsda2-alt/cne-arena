@@ -84,6 +84,18 @@ class RiotAPI:
         extra = ", 앞뒤에 공백/줄바꿈이 섞여 있었음" if self._had_whitespace else ""
         return f"길이 {len(k)}자, {prefix}{extra}"
 
+    def key_fingerprint(self):
+        """
+        키 대조용 지문 — 앞뒤 3글자만 남기고 가립니다.
+        36자 중 6자만 보여주므로 이것으로 키를 복원할 수 없습니다.
+        developer.riotgames.com 앱 화면의 키와 눈으로 맞춰보는 용도입니다.
+        """
+        k = self.api_key
+        body = k[6:] if k.startswith("RGAPI-") else k
+        if len(body) < 8:
+            return "(너무 짧아 표시 생략)"
+        return f"RGAPI-{body[:3]}…{body[-3:]}"
+
     # ---------- 내부 ----------
 
     def _throttle(self):
