@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>충남 아마추어 LoL 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html" id="siteName">CN <span>RANK</span></a>
+    <nav>
+      <a href="index.html" class="active">랭킹</a>
+      <a href="register.html">선수 등록</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>충남 아마추어 랭킹</h1>
+      <p id="pageDesc">충남 지역 아마추어 선수들의 솔로랭크 티어를 매일 자동으로 집계합니다.</p>
+    </div>
+
+    <section class="stats">
+      <div class="stat"><div class="k">등록 선수</div><div class="v" id="sTotal">-</div></div>
+      <div class="stat"><div class="k">랭크 배치</div><div class="v" id="sRanked">-</div></div>
+      <div class="stat"><div class="k">평균 티어</div><div class="v small" id="sAvg">-</div></div>
+      <div class="stat"><div class="k">1위</div><div class="v small" id="sTop">-</div></div>
+    </section>
+
+    <div class="tabs">
+      <button data-sort="tier" class="active">티어순</button>
+      <button data-sort="weekly">주간 상승</button>
+      <button data-sort="winrate">승률 (20판 이상)</button>
+      <button data-sort="games">판수</button>
+    </div>
+
+    <div class="controls">
+      <input type="search" id="q" placeholder="이름 · 소환사명 · 소속 검색">
+      <select id="fTeam"><option value="">전체 소속</option></select>
+      <select id="fRegion"><option value="">전체 지역</option></select>
+      <select id="fPosition"><option value="">전체 포지션</option></select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="rank-no">#</th>
+            <th>선수 <span id="count" style="font-weight:400"></span></th>
+            <th class="hide-sm">소속</th>
+            <th class="hide-sm">포지션</th>
+            <th>티어</th>
+            <th id="thExtra">어제 대비</th>
+            <th class="hide-sm">전적</th>
+            <th>승률</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty" style="display:none">불러오는 중…</div>
+    </div>
+
+    <p class="updated" id="updated"></p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>솔로랭크 기준 · 데이터 출처 Riot Games API</p>
+    <p style="margin-top:6px">
+      이 사이트는 Riot Games의 승인을 받지 않았으며 Riot Games 또는 League of Legends 제작·관리에
+      공식적으로 관여한 모든 이들의 견해나 의견을 반영하지 않습니다.
+    </p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/ranking.js"></script>
+</body>
+</html>

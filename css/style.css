@@ -1,0 +1,221 @@
+/* ===== 충남 아마추어 LoL 랭킹 ===== */
+:root {
+  --bg: #0d1017;
+  --surface: #171c26;
+  --surface-2: #1f2634;
+  --border: #2b3547;
+  --text: #e8ecf4;
+  --text-dim: #93a0b8;
+  --accent: #4f8cff;
+  --accent-hover: #6da1ff;
+  --gold: #d5a54a;
+  --up: #4cd97b;
+  --down: #ff6b6b;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", "Malgun Gothic", "맑은 고딕", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: var(--accent); }
+.container { width: min(1080px, 94%); margin: 0 auto; }
+
+/* ----- 헤더 ----- */
+.site-header {
+  background: rgba(13, 16, 23, 0.95);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+  backdrop-filter: blur(6px);
+}
+.site-header .container {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; gap: 12px;
+}
+.logo { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; text-decoration: none; color: var(--text); }
+.logo span { color: var(--accent); }
+.site-header nav a {
+  color: var(--text-dim); text-decoration: none; margin-left: 18px;
+  font-size: 0.94rem; padding: 6px 2px; border-bottom: 2px solid transparent;
+}
+.site-header nav a:hover { color: var(--text); }
+.site-header nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+main { flex: 1; padding: 30px 0 60px; }
+
+.page-title { margin-bottom: 22px; }
+.page-title h1 { font-size: 1.6rem; margin-bottom: 4px; }
+.page-title p { color: var(--text-dim); font-size: 0.95rem; }
+
+/* ----- 요약 카드 ----- */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 22px;
+}
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.stat .k { color: var(--text-dim); font-size: 0.82rem; }
+.stat .v { font-size: 1.35rem; font-weight: 700; margin-top: 2px; }
+.stat .v.small { font-size: 1rem; font-weight: 600; }
+
+/* ----- 컨트롤 ----- */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
+}
+.controls input, .controls select {
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; font-size: 0.92rem; font-family: inherit;
+}
+.controls input { flex: 1 1 200px; min-width: 0; }
+.controls input:focus, .controls select:focus { outline: none; border-color: var(--accent); }
+
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabs button {
+  background: var(--surface); color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 16px; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+}
+.tabs button:hover { color: var(--text); }
+.tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+/* ----- 랭킹 표 ----- */
+.table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--surface-2); color: var(--text-dim);
+  font-size: 0.82rem; font-weight: 600; text-align: left;
+  padding: 11px 12px; white-space: nowrap;
+}
+tbody td { padding: 11px 12px; border-top: 1px solid var(--border); font-size: 0.93rem; }
+tbody tr:hover { background: rgba(79, 140, 255, 0.06); }
+
+.rank-no { font-weight: 700; width: 54px; text-align: center; color: var(--text-dim); }
+.rank-no.top1 { color: var(--gold); font-size: 1.1rem; }
+.rank-no.top2 { color: #cfd6e4; }
+.rank-no.top3 { color: #c08457; }
+
+.player { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.player img, .player .noimg {
+  width: 34px; height: 34px; border-radius: 8px; flex: none;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.player .who { min-width: 0; }
+.player .nm { font-weight: 600; display: block; }
+.player .id {
+  color: var(--text-dim); font-size: 0.8rem;
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;
+}
+
+.tier { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tier .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tier .lp { color: var(--text-dim); font-size: 0.85rem; }
+
+.delta { font-size: 0.85rem; white-space: nowrap; }
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+.delta.zero { color: var(--text-dim); }
+
+.wl { white-space: nowrap; }
+.wl .w { color: var(--up); }
+.wl .l { color: var(--down); }
+.wr { font-weight: 600; }
+.wr.hi { color: var(--up); }
+.wr.lo { color: var(--down); }
+
+.badge {
+  display: inline-block; font-size: 0.72rem; padding: 1px 7px;
+  border-radius: 999px; border: 1px solid var(--border);
+  color: var(--text-dim); margin-left: 6px; vertical-align: middle;
+}
+.badge.hot { color: #ffb454; border-color: #6b4a1e; background: rgba(255,180,84,.1); }
+.badge.stale { color: var(--text-dim); }
+
+.empty { padding: 48px 20px; text-align: center; color: var(--text-dim); }
+.updated { color: var(--text-dim); font-size: 0.83rem; margin-top: 12px; text-align: right; }
+
+/* ----- 카드 / 안내 ----- */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
+}
+.card h2 { font-size: 1.1rem; margin-bottom: 10px; }
+.card h3 { font-size: 0.98rem; margin: 16px 0 6px; }
+.card p, .card li { color: var(--text-dim); font-size: 0.93rem; }
+.card ol, .card ul { padding-left: 20px; }
+.card li { margin: 4px 0; }
+.card strong { color: var(--text); }
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 0.88rem; margin-bottom: 5px; color: var(--text-dim); }
+.field input {
+  width: 100%; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 12px; font-size: 1rem; font-family: inherit;
+}
+.field input:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+  display: inline-block; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; padding: 11px 22px;
+  font-size: 0.96rem; font-weight: 600; cursor: pointer;
+  text-decoration: none; font-family: inherit;
+}
+.btn:hover { background: var(--accent-hover); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.icon-result {
+  display: none; margin-top: 14px; padding: 16px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+  align-items: center; gap: 16px;
+}
+.icon-result.show { display: flex; }
+.icon-result img {
+  width: 84px; height: 84px; border-radius: 12px; flex: none;
+  border: 2px solid var(--accent);
+}
+.icon-result .n { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+.icon-result .t { color: var(--text-dim); font-size: 0.9rem; }
+.hint { color: var(--down); font-size: 0.88rem; margin-top: 8px; display: none; }
+.hint.show { display: block; }
+
+.notice {
+  border-left: 3px solid var(--accent);
+  background: rgba(79, 140, 255, 0.07);
+  padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0;
+  font-size: 0.9rem; color: var(--text-dim);
+}
+
+.site-footer {
+  border-top: 1px solid var(--border); padding: 20px 0;
+  color: var(--text-dim); font-size: 0.85rem; text-align: center;
+}
+
+/* ----- 모바일 ----- */
+@media (max-width: 720px) {
+  .site-header .container { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .site-header nav a { margin-left: 0; margin-right: 16px; }
+  .hide-sm { display: none; }
+  .table-wrap { overflow-x: auto; }
+  tbody td, thead th { padding: 9px 7px; font-size: 0.86rem; }
+  .player img, .player .noimg { width: 28px; height: 28px; }
+  .player .id { max-width: 96px; font-size: 0.75rem; }
+  .rank-no { width: 34px; }
+  /* 좁은 화면에서는 티어·변동 표기가 줄바꿈되도록 허용 (가로 스크롤 방지) */
+  .tier, .delta { white-space: normal; }
+  .tier { gap: 5px; }
+}

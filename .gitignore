@@ -1,0 +1,9 @@
+# API 키는 절대 커밋하지 마세요 (GitHub Secrets에 넣습니다)
+.env
+*.key
+riot_api_key.txt
+
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

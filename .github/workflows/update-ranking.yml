@@ -1,0 +1,44 @@
+name: 랭킹 갱신
+
+on:
+  schedule:
+    # 매일 오전 4시 10분 (KST) = 19:10 UTC. 정각은 러너가 몰려 지연되므로 10분 뒤로 둡니다.
+    - cron: "10 19 * * *"
+  workflow_dispatch: # Actions 탭에서 수동 실행
+
+# 동시에 두 번 돌면서 서로의 커밋을 덮어쓰지 않도록
+concurrency:
+  group: ranking-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+        # 외부 패키지를 쓰지 않으므로 pip install 단계가 없습니다.
+
+      - name: 티어 갱신
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          FETCH_PROFILE: "1" # 프로필 아이콘/레벨까지 조회 (호출 2배). 아끼려면 "0"
+        run: python scripts/update_ranking.py
+
+      - name: 변경사항 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ranking.json data/history
+          if git diff --staged --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore: 랭킹 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+            git push
+          fi

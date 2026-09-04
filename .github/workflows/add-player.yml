@@ -1,0 +1,93 @@
+name: 선수 등록
+
+# Actions 탭 > "선수 등록" > Run workflow 에서 신청 내용을 입력하면
+# 아이콘 인증 → puuid 변환 → data/players.json 커밋까지 자동으로 끝납니다.
+on:
+  workflow_dispatch:
+    inputs:
+      riot_id:
+        description: "Riot ID (예: 홍길동#KR1)"
+        required: true
+      name:
+        description: "표시 이름 (비우면 게임 닉네임)"
+        required: false
+      team:
+        description: "소속 (학교/팀)"
+        required: false
+      region:
+        description: "지역 (예: 천안, 아산, 공주)"
+        required: false
+      position:
+        description: "주 포지션 (탑/정글/미드/원딜/서포터)"
+        required: false
+      skip_verify:
+        description: "아이콘 인증 생략 (오프라인 본인확인 완료 시)"
+        type: boolean
+        default: false
+      approve:
+        description: "바로 승인 (끄면 승인 대기 상태로 등록)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ranking-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 입력값은 반드시 env로 전달합니다 (run: 안에 ${{ }}를 직접 넣으면 셸 명령이 주입될 수 있음)
+      - name: 선수 추가
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          IN_RIOT_ID: ${{ inputs.riot_id }}
+          IN_NAME: ${{ inputs.name }}
+          IN_TEAM: ${{ inputs.team }}
+          IN_REGION: ${{ inputs.region }}
+          IN_POSITION: ${{ inputs.position }}
+        run: |
+          python scripts/add_player.py \
+            --riot-id "$IN_RIOT_ID" \
+            --name "$IN_NAME" \
+            --team "$IN_TEAM" \
+            --region "$IN_REGION" \
+            --position "$IN_POSITION" \
+            ${{ inputs.skip_verify && '--skip-verify' || '' }} \
+            ${{ inputs.approve && ' ' || '--no-approve' }}
+
+      - name: 커밋
+        env:
+          IN_RIOT_ID: ${{ inputs.riot_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/players.json
+          if git diff --staged --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore: 선수 등록 $IN_RIOT_ID"
+            git push
+          fi
+
+      - name: 랭킹 즉시 반영
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: |
+          python scripts/update_ranking.py
+          git add data/ranking.json data/history
+          if git diff --staged --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore: 랭킹 갱신(선수 등록)"
+            git push
+          fi

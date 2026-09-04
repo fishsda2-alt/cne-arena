@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>선수 등록 — 충남 아마추어 LoL 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CN <span>RANK</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="register.html" class="active">선수 등록</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>선수 등록</h1>
+      <p>본인 계정임을 확인한 뒤 랭킹에 추가됩니다. 2분이면 끝납니다.</p>
+    </div>
+
+    <section class="card">
+      <h2>1단계 · 내 인증 아이콘 번호 확인</h2>
+      <p>Riot ID를 입력하면 본인 인증에 사용할 <strong>프로필 아이콘 번호</strong>가 나옵니다.</p>
+
+      <div class="field" style="margin-top:14px">
+        <label for="riotId">Riot ID (소환사명 + 태그)</label>
+        <input type="text" id="riotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+      </div>
+      <button class="btn" id="checkBtn">아이콘 번호 확인</button>
+      <p class="hint" id="hint">형식이 올바르지 않습니다. <strong>이름#태그</strong> 형태로 입력해 주세요. (예: 홍길동#KR1)</p>
+
+      <div class="icon-result" id="result">
+        <img id="iconImg" src="" alt="인증용 프로필 아이콘">
+        <div>
+          <div class="n"><span id="iconNo"></span>번 아이콘</div>
+          <div class="t">게임 클라이언트에서 이 아이콘으로 바꾼 뒤 2단계로 넘어가세요.</div>
+        </div>
+      </div>
+
+      <div class="notice">
+        아이콘 번호는 Riot ID마다 고정입니다. 인증이 끝나면 원하는 아이콘으로 되돌려도 됩니다.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2단계 · 게임에서 아이콘 변경</h2>
+      <ol>
+        <li>롤 클라이언트 실행 → 우측 상단 <strong>내 프로필</strong> 클릭</li>
+        <li>프로필 아이콘 클릭 → 위에서 안내된 번호의 <strong>기본 아이콘</strong> 선택</li>
+        <li>로비 화면으로 나오기 (변경 사항이 서버에 반영됩니다)</li>
+      </ol>
+      <p style="margin-top:8px">아이콘 변경이 조회에 반영되기까지 <strong>몇 분</strong> 걸릴 수 있습니다.</p>
+    </section>
+
+    <section class="card">
+      <h2>3단계 · 등록 신청</h2>
+      <p>아래 항목을 신청서에 적어 보내주세요. 운영자가 아이콘을 확인한 뒤 승인합니다.</p>
+      <ul style="margin-top:8px">
+        <li>Riot ID (예: 홍길동#KR1)</li>
+        <li>표시할 이름 (실명 또는 활동명)</li>
+        <li>소속 (학교 / 팀 / 클럽)</li>
+        <li>지역 (천안, 아산, 공주 …)</li>
+        <li>주 포지션</li>
+      </ul>
+      <p style="margin-top:14px" id="applyBox">
+        <a class="btn" id="applyBtn" href="#">신청서 작성하기</a>
+      </p>
+      <div class="notice">
+        <strong>승인 기준:</strong> 충남 소재 학교·팀 소속이거나 충남 거주 아마추어 선수여야 합니다.
+        프로게이머 및 프로팀 소속 연습생은 등록할 수 없습니다.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>개인정보 안내</h2>
+      <ul>
+        <li>공개되는 정보: 표시 이름, Riot ID, 소속, 지역, 포지션, 티어·전적</li>
+        <li>수집 목적: 지역 아마추어 랭킹 집계 및 공개</li>
+        <li>보관 기간: 삭제를 요청할 때까지</li>
+        <li><strong>만 14세 미만</strong>은 보호자 동의가 필요합니다.</li>
+        <li>삭제를 원하면 <span id="contact"></span>로 Riot ID를 알려주세요. 랭킹·기록에서 즉시 지웁니다.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>솔로랭크 기준 · 데이터 출처 Riot Games API</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/verify.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("contact").textContent = SITE.contact;
+
+  const applyBtn = document.getElementById("applyBtn");
+  if (SITE.formUrl) {
+    applyBtn.href = SITE.formUrl;
+    applyBtn.target = "_blank";
+    applyBtn.rel = "noopener";
+  } else {
+    applyBtn.href = `mailto:${SITE.contact}?subject=${encodeURIComponent("[랭킹] 선수 등록 신청")}`;
+    applyBtn.textContent = "이메일로 신청하기";
+  }
+
+  const input = document.getElementById("riotId");
+  const hint = document.getElementById("hint");
+  const result = document.getElementById("result");
+
+  function check() {
+    const parsed = splitRiotId(input.value);
+    if (!parsed) {
+      hint.classList.add("show");
+      result.classList.remove("show");
+      return;
+    }
+    hint.classList.remove("show");
+    const id = expectedIconId(parsed.gameName, parsed.tagLine);
+    document.getElementById("iconNo").textContent = id;
+    document.getElementById("iconImg").src = profileIconUrl(id);
+    result.classList.add("show");
+  }
+
+  document.getElementById("checkBtn").addEventListener("click", check);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+});
+</script>
+</body>
+</html>

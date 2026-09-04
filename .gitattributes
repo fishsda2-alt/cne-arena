@@ -1,0 +1,4 @@
+# 저장소에는 항상 LF로 저장 (GitHub Actions는 리눅스에서 실행됩니다)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
