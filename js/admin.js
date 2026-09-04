@@ -25,6 +25,8 @@ async function init() {
     $(sel).addEventListener("change", render);
   });
 
+  setupManageToggle();
+
   $("#keyBtn").addEventListener("click", saveKey);
   $("#keyClear").addEventListener("click", clearKey);
   if (readKey()) {
@@ -34,6 +36,31 @@ async function init() {
 
   loadVisits();
   await load();
+}
+
+/* ───────── 운영자 도구 열고 닫기 ───────── */
+
+/**
+ * 관리 버튼은 기본으로 감춰 둡니다. 보안 장치가 아니라 화면 정리입니다 —
+ * 실제로 막는 것은 Apps Script 쪽 관리 키입니다.
+ * 주소에 ?manage 를 붙이면 바로 열리므로 운영자는 그 주소를 즐겨찾기 하면 됩니다.
+ */
+function setupManageToggle() {
+  const asked = new URLSearchParams(location.search).has("manage");
+  setManage(asked);
+  $("#manageToggle").addEventListener("click", (e) => {
+    e.preventDefault();
+    setManage(!document.body.classList.contains("manage"));
+  });
+}
+
+function setManage(on) {
+  document.body.classList.toggle("manage", on);
+  $("#manageToggle").textContent = on ? "운영자 도구 닫기" : "운영자 도구";
+  const url = new URL(location.href);
+  if (on) url.searchParams.set("manage", "1");
+  else url.searchParams.delete("manage");
+  history.replaceState({}, "", url);
 }
 
 /* ───────── 방문 집계 ───────── */
@@ -246,7 +273,7 @@ function row(p) {
     <td class="hide-sm">${esc(p.team) || "-"}</td>
     <td>${gameCells}</td>
     <td>${state}</td>
-    <td class="ops">
+    <td class="ops manage-only">
       <button class="btn btn-sm ghost" data-op="${p.proAspirant ? "unpro" : "pro"}" data-who="${who}">${p.proAspirant ? "★ 끄기" : "★ 켜기"}</button>
       <button class="btn btn-sm ghost" data-op="${p.approved ? "hold" : "approve"}" data-who="${who}">${p.approved ? "보류" : "승인"}</button>
     </td>

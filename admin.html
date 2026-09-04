@@ -24,14 +24,7 @@
   <div class="container">
     <div class="page-title">
       <h1>운영 현황</h1>
-      <p>등록 명단과 지역 분포를 한눈에 보고, ★ 표시와 승인을 바로 처리합니다.</p>
-    </div>
-
-    <div class="notice">
-      <strong>이 페이지는 누구나 열 수 있습니다.</strong> 서버가 없는 구조라 감출 방법이 없습니다.
-      다만 여기 보이는 값은 전부 <code>data/players.json</code>에 이미 공개된 것이라
-      새로 드러나는 정보는 없습니다.
-      <strong>바꾸는 일(★·승인)만 관리 키를 아는 사람이 할 수 있습니다.</strong>
+      <p>지금까지 등록된 선수와 지역·종목 분포입니다.</p>
     </div>
 
     <!-- ── 요약 ──────────────────────────────────────────── -->
@@ -55,8 +48,8 @@
       </section>
     </div>
 
-    <!-- ── 관리 키 ───────────────────────────────────────── -->
-    <section class="card">
+    <!-- ── 관리 키 (운영자 도구를 열었을 때만 보입니다) ───── -->
+    <section class="card manage-only">
       <h2>관리 키</h2>
       <p>★ 표시와 승인을 바꾸려면 관리 키가 필요합니다.
         입력한 키는 <strong>이 탭에서만</strong> 기억하고, 창을 닫으면 사라집니다.</p>
@@ -69,11 +62,6 @@
         <button class="btn ghost" id="keyClear" type="button">지우기</button>
       </div>
       <p class="copied" id="keyMsg"></p>
-      <div class="notice" id="keySetup">
-        아직 준비가 안 됐다면 Apps Script 프로젝트 설정 → 스크립트 속성에
-        <code>ADMIN_KEY</code> 를 추가하세요. <strong>20자 이상의 무작위 문자열</strong>을 쓰시고,
-        이 값은 저장소·문서 어디에도 적지 마세요.
-      </div>
     </section>
 
     <!-- ── 명단 ──────────────────────────────────────────── -->
@@ -100,7 +88,7 @@
               <th class="hide-sm">소속</th>
               <th>종목 · 포지션</th>
               <th>상태</th>
-              <th>관리</th>
+              <th class="manage-only">관리</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -111,14 +99,16 @@
       <div class="result-box" id="okBox"><h3>처리했습니다</h3><p id="okMsg"></p></div>
       <div class="result-box error" id="ngBox"><h3>처리하지 못했습니다</h3><p id="ngMsg"></p></div>
 
-      <div class="notice">
-        <strong>삭제는 여기서 하지 않습니다.</strong> 되돌릴 수 없는 일이라
-        Actions 탭의 <strong>선수 관리 → remove</strong> 에만 두었습니다.
-        선수 본인은 사이트의 <a href="remove.html">등록 삭제</a> 페이지를 쓸 수 있습니다.
-      </div>
+      <p class="foot-note">
+        등록을 취소하고 싶으시면 <a href="remove.html">등록 삭제</a> 페이지를 이용하세요.
+      </p>
     </section>
 
     <p class="updated" id="updated"></p>
+
+    <p class="foot-note" style="text-align:right">
+      <a href="#" id="manageToggle">운영자 도구</a>
+    </p>
   </div>
 </main>
 
