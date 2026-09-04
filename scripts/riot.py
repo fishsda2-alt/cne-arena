@@ -104,6 +104,15 @@ class RiotAPI:
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     raise NotFound(404, path)
+                if e.code in (401, 403):
+                    # 개발용 키는 24시간마다 만료됩니다. 가장 흔한 실패 원인이라 따로 안내합니다.
+                    raise RiotError(
+                        e.code,
+                        "API 키가 만료되었거나 유효하지 않습니다. "
+                        "developer.riotgames.com 에서 키를 다시 복사해 "
+                        "저장소 Settings > Secrets and variables > Actions 의 "
+                        "RIOT_API_KEY 값을 교체하세요. (개발용 키는 24시간마다 만료됩니다)",
+                    )
                 if e.code == 429 and attempt < retries:
                     try:
                         delay = int(e.headers.get("Retry-After", "10"))

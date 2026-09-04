@@ -29,7 +29,21 @@ jobs:
         env:
           RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
           FETCH_PROFILE: "1" # 프로필 아이콘/레벨까지 조회 (호출 2배). 아끼려면 "0"
-        run: python scripts/update_ranking.py
+        run: |
+          set -o pipefail
+          python scripts/update_ranking.py 2>&1 | tee /tmp/update-out.txt
+
+      # 로그를 펼치지 않아도 실행 요약에서 결과(특히 키 만료)를 바로 볼 수 있게 합니다.
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 갱신 결과"
+            echo ""
+            echo '```'
+            tail -n 30 /tmp/update-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 변경사항 커밋
         run: |
