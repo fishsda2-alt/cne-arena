@@ -1,5 +1,9 @@
 """
-등록된 선수들의 티어를 갱신해 data/ranking.json 을 다시 씁니다.
+롤에 등록된 선수들의 티어를 갱신해 data/ranking.json 을 다시 씁니다.
+
+**이 스크립트는 리그 오브 레전드 전용입니다.** 발로란트는 티어를 얻는 경로가
+완전히 달라서(경기별 competitiveTier), Riot 승인이 나면 별도 스크립트를 만듭니다.
+여기서는 롤에 등록한 선수만 골라내고, 포지션도 그 선수의 롤 포지션을 씁니다.
 
 GitHub Actions가 하루 한 번 실행합니다. (수동 실행도 가능)
 호출량: 선수 1명당 2콜(리그 + 프로필). 100명이면 200콜 ≈ 4분.
@@ -12,14 +16,15 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 
+import players as P
 import ranking
 from riot import NotFound, RiotAPI, RiotError
 
 KST = timezone(timedelta(hours=9))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
-PLAYERS_FILE = os.path.join(DATA, "players.json")
-RANKING_FILE = os.path.join(DATA, "ranking.json")
+GAME = "lol"
+RANKING_FILE = P.ranking_file(GAME)
 HISTORY_DIR = os.path.join(DATA, "history")
 
 FETCH_PROFILE = os.environ.get("FETCH_PROFILE", "1") != "0"
@@ -37,7 +42,7 @@ def read_json(path, fallback):
 
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
@@ -56,7 +61,7 @@ def build_entry(player, api, previous):
         "name": player.get("name") or player["gameName"],
         "team": player.get("team", ""),
         "region": player.get("region", ""),
-        "position": player.get("position", ""),
+        "position": P.position_of(player, GAME),
         "gameName": player["gameName"],
         "tagLine": player["tagLine"],
         # 프로 트라이아웃 희망 선수 (랭킹표에 ★ 표시).
@@ -151,9 +156,13 @@ def main():
         per_two_min=int(os.environ.get("RIOT_PER_2MIN", "100")),
     )
 
-    players = [p for p in read_json(PLAYERS_FILE, {}).get("players", []) if p.get("approved")]
+    # 승인됐고 이 종목에 등록한 선수만 (발로란트만 등록한 선수는 롤 랭킹에 넣지 않습니다)
+    players = [
+        p for p in P.load()["players"]
+        if p.get("approved") and P.has_game(p, GAME)
+    ]
     if not players:
-        print("승인된 선수가 없습니다. data/players.json을 확인하세요.")
+        print(f"{P.game_name(GAME)}에 승인 등록된 선수가 없습니다. data/players.json을 확인하세요.")
         write_json(RANKING_FILE, {
             "updatedAt": datetime.now(KST).isoformat(timespec="seconds"),
             "playerCount": 0, "rankedCount": 0, "errors": [], "players": [],

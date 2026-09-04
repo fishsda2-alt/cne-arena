@@ -43,13 +43,26 @@ function kstDateString(now) {
 }
 
 /**
- * 정보 수정용 아이콘 번호 — scripts/riot.py 의 edit_icon_id 와 동일한 결과를 냅니다.
+ * 본인 확인용 아이콘 번호 — scripts/riot.py 의 challenge_icon_id 와 같은 결과를 냅니다.
  *
  * 등록용 번호는 Riot ID마다 고정이라, 인증 후 아이콘을 되돌리지 않은 선수는
- * Riot ID만 아는 사람에게 수정 신청을 통과당할 수 있습니다. 수정은 반복되는 행위이므로
- * 날짜를 섞어 매일 다른 번호가 나오게 했습니다. (등록용 번호와도 겹치지 않습니다)
+ * Riot ID만 아는 사람에게 정보를 건드려질 수 있습니다. 수정·삭제는 반복되는
+ * 행위이므로 날짜를 섞어 매일 다른 번호가 나오게 했습니다.
+ *
+ * purpose 로 용도까지 가릅니다 — 수정용 아이콘이 삭제까지 통과시키면,
+ * 오늘 정보를 고친 선수를 같은 날 남이 지울 수 있게 됩니다.
  */
-function editIconId(gameName, tagLine, day) {
+function challengeIconId(gameName, tagLine, purpose, day) {
   const base = `${gameName.trim().toLowerCase()}#${tagLine.trim().replace(/^#/, "").toLowerCase()}`;
-  return VERIFY_ICONS[crc32(`${base}|${day || kstDateString()}|edit`) % VERIFY_ICONS.length];
+  return VERIFY_ICONS[crc32(`${base}|${day || kstDateString()}|${purpose}`) % VERIFY_ICONS.length];
+}
+
+/** 정보 수정용 번호 */
+function editIconId(gameName, tagLine, day) {
+  return challengeIconId(gameName, tagLine, "edit", day);
+}
+
+/** 등록 삭제용 번호 — 수정용과 다른 번호가 나옵니다 */
+function removeIconId(gameName, tagLine, day) {
+  return challengeIconId(gameName, tagLine, "remove", day);
 }

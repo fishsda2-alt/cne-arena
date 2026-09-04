@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>등록 삭제 — 충남 아마추어 랭킹</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
+    <nav>
+      <a href="index.html">랭킹</a>
+      <a href="register.html">선수 등록</a>
+      <a href="edit.html" class="active">정보 수정</a>
+      <a href="pro.html">프로 지망 <span class="star">★</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="page-title">
+      <h1>등록 삭제</h1>
+      <p>랭킹에서 본인을 내립니다. 종목 하나만 해지할 수도 있습니다.</p>
+    </div>
+
+    <div class="danger-note">
+      <strong>되돌릴 수 없습니다.</strong>
+      랭킹표·일별 기록에서 모두 지워지고, 지금까지 쌓인 티어 변동 기록도 함께 사라집니다.
+      다시 참여하시려면 처음부터 등록하셔야 하고, <strong>그동안의 기록은 복구되지 않습니다.</strong>
+      <br>잠시만 안 보이게 하고 싶은 것이라면 삭제 대신
+      <span id="contactHold"></span>로 <strong>보류</strong>를 요청하세요 — 기록은 남고 랭킹에서만 빠집니다.
+    </div>
+
+    <!-- ── 1단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">1</span> 내 정보와 오늘의 삭제용 번호 확인</h2>
+      <p>등록할 때 쓴 Riot ID를 입력하세요.</p>
+
+      <div class="field" style="margin-top:14px">
+        <label for="riotId">Riot ID (소환사명 + 태그)</label>
+        <input type="text" id="riotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+      </div>
+      <button class="btn" id="checkBtn">내 정보 불러오기</button>
+      <p class="hint" id="hint">형식이 올바르지 않습니다. <strong>이름#태그</strong> 형태로 입력해 주세요.</p>
+
+      <div class="icon-result" id="result">
+        <img id="iconImg" src="" alt="삭제 인증용 프로필 아이콘">
+        <div>
+          <div class="n"><span id="iconNo"></span>번 아이콘</div>
+          <div class="t">게임에서 이 아이콘으로 바꾼 뒤 3단계를 작성하세요.</div>
+        </div>
+      </div>
+
+      <div class="notice" id="curBox" style="display:none">
+        <strong>현재 등록된 내용</strong>
+        <div id="curInfo" style="margin-top:6px"></div>
+      </div>
+
+      <div class="notice">
+        <strong>삭제용 번호는 정보 수정용과 다릅니다.</strong>
+        같은 번호를 쓰면, 정보를 고치려고 아이콘을 바꿔 둔 선수를
+        같은 날 다른 사람이 지울 수 있게 되기 때문입니다. 번호는 매일도 바뀝니다.
+      </div>
+    </section>
+
+    <!-- ── 2단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">2</span> 게임에서 아이콘 변경</h2>
+      <ol>
+        <li>롤 클라이언트 실행 → 우측 상단 <strong>내 프로필</strong> 클릭</li>
+        <li>프로필 아이콘 클릭 → 위에서 안내된 번호의 <strong>기본 아이콘</strong> 선택</li>
+        <li>로비 화면으로 나오기 (변경 사항이 서버에 반영됩니다)</li>
+      </ol>
+      <p style="margin-top:8px">아이콘 변경이 조회에 반영되기까지 <strong>몇 분</strong> 걸릴 수 있습니다.</p>
+    </section>
+
+    <!-- ── 3단계 ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2><span class="step-no">3</span> 삭제 범위를 고르고 확인</h2>
+
+      <form id="rmForm" novalidate>
+        <div class="field">
+          <label for="fRiotId">Riot ID <span class="req">필수</span></label>
+          <input type="text" id="fRiotId" placeholder="예: 홍길동#KR1" autocomplete="off">
+          <p class="err" id="errRiotId">이름#태그 형태로 입력해 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label>무엇을 지울까요? <span class="req">필수</span></label>
+          <div class="game-tabs pick" id="scopePick"></div>
+          <p class="err" id="errScope">지울 범위를 골라 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label for="fConfirm">확인을 위해 <strong id="confirmTarget">Riot ID</strong>를 그대로 입력하세요 <span class="req">필수</span></label>
+          <input type="text" id="fConfirm" placeholder="예: 홍길동#KR1" autocomplete="off">
+          <p class="err" id="errConfirm">위에 적은 Riot ID와 똑같이 입력해 주세요.</p>
+        </div>
+
+        <div class="field check">
+          <label>
+            <input type="checkbox" id="fIcon">
+            <span>오늘 안내된 번호로 <strong>프로필 아이콘을 변경했습니다</strong></span>
+          </label>
+          <p class="err" id="errIcon">아이콘을 먼저 변경해 주세요. 변경하지 않으면 삭제가 거부됩니다.</p>
+        </div>
+
+        <div class="field check">
+          <label>
+            <input type="checkbox" id="fAgree">
+            <span><strong>되돌릴 수 없다는 것을 이해했습니다.</strong> 지금까지의 기록이 함께 사라집니다.</span>
+          </label>
+          <p class="err" id="errAgree">확인에 체크해 주셔야 진행할 수 있습니다.</p>
+        </div>
+
+        <button class="btn btn-lg btn-danger" id="submitBtn" type="submit">삭제 신청하기</button>
+      </form>
+
+      <div class="result-box" id="okBox">
+        <h3>접수되었습니다</h3>
+        <p id="okMsg"></p>
+      </div>
+      <div class="result-box error" id="ngBox">
+        <h3>삭제에 실패했습니다</h3>
+        <p id="ngMsg"></p>
+      </div>
+
+      <div class="notice">
+        저장소의 <strong>커밋 이력에는 기록이 남습니다.</strong> 공개 저장소로 운영되기 때문입니다.
+        완전 파기가 필요하시면 <span id="contact"></span>로 따로 요청해 주세요.
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>데이터 출처 Riot Games API</p>
+    <p style="margin-top:6px">
+      이 사이트는 Riot Games의 승인을 받지 않았으며, Riot Games 또는 Riot Games 자산의
+      제작·관리에 공식적으로 관여한 모든 이들의 견해나 의견을 반영하지 않습니다.
+      Riot Games와 관련 자산은 Riot Games, Inc.의 상표 또는 등록상표입니다.
+    </p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/verify.js"></script>
+<script src="js/remove.js"></script>
+</body>
+</html>

@@ -44,6 +44,7 @@ cnrank/
 ├── index.html               랭킹표 (티어순 / 주간 상승 / 승률 / 판수)
 ├── register.html            선수 등록 — 아이콘 인증 + 입력 폼 + 제출
 ├── edit.html                정보 수정 — 선수 본인이 닉네임·지역·포지션·소속 변경
+├── remove.html              등록 삭제 — 선수 본인이 랭킹에서 내림 (종목별/전체)
 ├── pro.html                 프로 트라이아웃 희망 신청 안내 (이메일 양식)
 ├── css/style.css
 ├── js/
@@ -52,6 +53,7 @@ cnrank/
 │   │                        · 등록용은 Riot ID로 고정, 수정용은 날짜마다 바뀜
 │   ├── register.js          등록 폼 검증 + 제출 (자동등록 ↔ 이메일 자동 전환)
 │   ├── edit.js              수정 폼 — 현재 값 불러오기 + 검증 + 제출
+│   ├── remove.js            삭제 폼 — 범위 선택 + 3중 확인
 │   └── ranking.js           랭킹표 렌더링
 ├── scripts/                 (GitHub Actions가 실행, 외부 패키지 0개)
 │   ├── riot.py              API 클라이언트 + 요청 한도 제어
@@ -59,7 +61,10 @@ cnrank/
 │   ├── update_ranking.py    하루 1회 갱신
 │   ├── add_player.py        선수 등록 + 아이콘 인증
 │   ├── manage_player.py     승인 / 보류 / ★표시 / 수정 / 삭제 (운영자)
+│   ├── players.py           선수 명단 읽기·쓰기 + 종목별 정보 (공용)
+│   ├── verify_common.py     아이콘 재인증 (수정·삭제 공용)
 │   ├── self_edit.py         선수 본인 정보 수정 + 아이콘 재인증
+│   ├── self_remove.py       선수 본인 등록 삭제 (종목별/전체)
 │   ├── check_key.py         API 키 점검 (키 값은 출력하지 않음)
 │   ├── check_parity.py      JS·Python 아이콘 번호 대조 (어긋나면 인증이 전부 실패)
 │   └── apps-script/
@@ -73,10 +78,12 @@ cnrank/
 │   ├── update-ranking.yml     매일 04:10 자동 갱신
 │   ├── register-from-site.yml 사이트에서 들어온 신청 자동 등록
 │   ├── edit-from-site.yml     사이트에서 들어온 정보 수정 (아이콘 재인증)
+│   ├── remove-from-site.yml   사이트에서 들어온 등록 삭제
 │   ├── add-player.yml         선수 등록 (수동 실행)
 │   ├── manage-player.yml      승인/보류/★/수정/삭제 (수동 실행)
 │   ├── check-key.yml          API 키 점검 (수동 실행)
 │   ├── check-parity.yml       아이콘 번호 대조 (verify.js·riot.py 변경 시 자동)
+│   ├── check-val.yml          발로란트 API 권한 점검 (수동 실행)
 │   └── deploy-pages.yml       정적 사이트 배포
 ├── serve.ps1 / start-server.bat   로컬 미리보기 (아무것도 설치 안 해도 됨)
 └── README.md
@@ -208,7 +215,9 @@ HTML은 건드릴 필요가 없습니다.
 | ★ 프로 지망 표시 켜기/끄기 | Actions → **선수 관리** → `pro` / `unpro` |
 | 닉네임·지역·포지션 수정 | **선수가 직접** — 사이트의 `정보 수정` 페이지 (운영자 개입 불필요) |
 | 〃 (운영자가 대신) | Actions → **선수 관리** → `edit` + 바꿀 항목만 입력 |
-| 개인정보 삭제 요청 | Actions → **선수 관리** → `remove` (랭킹·기록에서 전부 삭제) |
+| 등록 삭제 | **선수가 직접** — 사이트의 `등록 삭제` 페이지 (종목별/전체) |
+| 〃 (운영자가 대신) | Actions → **선수 관리** → `remove` (랭킹·기록에서 전부 삭제) |
+| 종목 하나만 해지 | Actions → **선수 관리** → `drop` + 종목 선택 |
 | 지금 당장 랭킹 갱신 | Actions → **랭킹 갱신** → Run workflow |
 | 사이트 이름·연락처 변경 | `js/config.js` 수정 후 커밋 |
 

@@ -12,6 +12,8 @@ const $ = (sel) => document.querySelector(sel);
 
 /** 1단계에서 불러온 현재 등록 정보 (없으면 null) */
 let current = null;
+/** 포지션을 바꿀 종목 */
+let GAME = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -20,7 +22,6 @@ function init() {
   $("#contact2").textContent = SITE.contact;
 
   fillSelect($("#fRegion"), REGIONS);
-  fillSelect($("#fPosition"), POSITIONS);
 
   $("#checkBtn").addEventListener("click", lookup);
   $("#riotId").addEventListener("keydown", (e) => {
@@ -63,35 +64,75 @@ async function lookup() {
 
   current = await findPlayer(parsed);
   const box = $("#curBox");
+  box.style.display = "";
 
   if (!current) {
-    box.style.display = "";
     $("#curInfo").innerHTML =
       "등록된 선수를 찾지 못했습니다. Riot ID를 다시 확인해 주세요.<br>" +
-      "아직 <strong>승인 대기</strong> 중이면 랭킹에 나오지 않아 여기서도 조회되지 않습니다. " +
-      "그래도 수정 신청은 보낼 수 있습니다.";
+      "아직 등록하지 않으셨다면 <a href='register.html'>선수 등록</a>을 먼저 해 주세요.";
+    $("#gameField").hidden = true;
     return;
   }
 
-  box.style.display = "";
+  const games = Object.keys(playerGames(current));
   $("#curInfo").innerHTML = [
     ["표시 닉네임", current.name],
     ["지역", current.region],
-    ["주 포지션", current.position],
     ["소속", current.team || "(없음)"],
-  ].map(([k, v]) => `${k}: <strong>${escapeHtml(v || "-")}</strong>`).join(" · ");
+  ].map(([k, v]) => `${k}: <strong>${escapeHtml(v || "-")}</strong>`).join(" · ") +
+    "<br>등록 종목: " + games.map((g) => {
+      const info = gameById(g);
+      const pos = (playerGames(current)[g] || {}).position || "-";
+      return `<strong>${escapeHtml(info ? info.name : g)}</strong>(${escapeHtml(pos)})`;
+    }).join(" · ");
 
   // 폼에 현재 값을 채워 둡니다 — 바꾸지 않을 항목은 그대로 두면 됩니다.
   $("#fNick").value = current.name || "";
   $("#fTeam").value = current.team || "";
   $("#fRegion").value = current.region || "";
-  $("#fPosition").value = current.position || "";
+
+  buildGamePick(games);
 }
 
-/** ranking.json 에서 이 Riot ID의 항목을 찾습니다. */
+/** 등록한 종목이 둘 이상이면 어느 종목의 포지션을 바꿀지 고르게 합니다 */
+function buildGamePick(games) {
+  const field = $("#gameField");
+  const wrap = $("#gamePick");
+  field.hidden = games.length < 2;
+  wrap.innerHTML = games.map((g) => {
+    const info = gameById(g);
+    return `<button type="button" data-game="${escapeHtml(g)}">${escapeHtml(info ? info.name : g)}</button>`;
+  }).join("");
+  wrap.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("click", () => pickGame(b.dataset.game));
+  });
+  pickGame(games[0]);
+}
+
+function pickGame(id) {
+  GAME = id;
+  $("#gamePick").querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.game === id);
+  });
+  const info = gameById(id);
+  if (info) {
+    document.documentElement.style.setProperty("--accent", info.accent);
+    document.documentElement.style.setProperty("--accent-hover", info.accentHover);
+    fillSelect($("#fPosition"), info.positions);
+    $("#posGame").textContent = info.name;
+  }
+  $("#fPosition").value = (playerGames(current)[id] || {}).position || "";
+}
+
+/**
+ * data/players.json 에서 이 Riot ID의 선수를 찾습니다.
+ * 랭킹 파일이 아니라 명단을 읽는 이유는, 승인 대기 중이거나 아직 랭킹을 열지 않은
+ * 종목(발로란트)에 등록한 선수도 자기 정보를 고칠 수 있어야 하기 때문입니다.
+ * (players.json 은 공개 저장소에 그대로 있는 파일이라 새로 노출되는 정보는 없습니다)
+ */
 async function findPlayer(parsed) {
   try {
-    const res = await fetch(`data/ranking.json?t=${Date.now()}`);
+    const res = await fetch(`data/players.json?t=${Date.now()}`);
     if (!res.ok) return null;
     const data = await res.json();
     const key = normalizeRiotId(parsed.gameName, parsed.tagLine);
@@ -117,6 +158,7 @@ function collect() {
   const team = $("#fTeam").value.trim();
   return {
     action: "edit",
+    game: GAME || "",
     riotId: $("#fRiotId").value.trim(),
     nickname: $("#fNick").value.trim(),
     region: $("#fRegion").value,
@@ -130,9 +172,10 @@ function collect() {
 /** 현재 값과 하나도 다르지 않으면 보낼 필요가 없습니다. (현재 값을 모르면 그냥 보냅니다) */
 function hasChange(data) {
   if (!current) return true;
+  const nowPos = (playerGames(current)[GAME] || {}).position || "";
   return data.nickname !== (current.name || "") ||
     data.region !== (current.region || "") ||
-    data.position !== (current.position || "") ||
+    data.position !== nowPos ||
     data.team !== (current.team || "");
 }
 
@@ -210,7 +253,7 @@ function openMail(data) {
     `Riot ID: ${data.riotId}`,
     `표시 닉네임: ${data.nickname}`,
     `지역: ${data.region}`,
-    `주 포지션: ${data.position}`,
+    `주 포지션: ${data.position} (${data.game})`,
     `소속: ${data.team || (data.clearTeam ? "(없음으로 변경)" : "(변경 없음)")}`,
     "",
     `인증 아이콘: ${data.expectedIcon}번으로 변경 완료 (${kstDateString()} 기준)`,

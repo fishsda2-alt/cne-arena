@@ -37,9 +37,12 @@ jobs:
           IN_REGION: ${{ github.event.client_payload.region }}
           IN_POSITION: ${{ github.event.client_payload.position }}
           IN_TEAM: ${{ github.event.client_payload.team }}
+          IN_GAME: ${{ github.event.client_payload.game }}
         run: |
           set -o pipefail
+          GAME="${IN_GAME:-lol}"
           python scripts/add_player.py \
+            --game "$GAME" \
             --riot-id "$IN_RIOT_ID" \
             --name "$IN_NAME" \
             --region "$IN_REGION" \

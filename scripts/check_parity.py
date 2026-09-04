@@ -22,7 +22,7 @@ import sys
 import tempfile
 from datetime import datetime
 
-from riot import edit_icon_id, expected_icon_id
+from riot import challenge_icon_id, expected_icon_id
 
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,6 +39,7 @@ IDS = [
     ("Mixed CaSe 이름", "TAG9"),
 ]
 DAYS = ["2026-01-01", "2026-09-04", "2026-12-31", "2027-02-28"]
+PURPOSES = ["edit", "remove"]
 
 # verify.js 를 함수 본문으로 감싸 실행합니다.
 # (const 선언이 eval 밖으로 새지 않으므로 new Function 안에서 그대로 호출합니다)
@@ -48,7 +49,7 @@ const cases = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const src = fs.readFileSync(process.argv[3], 'utf8');
 const run = new Function('cases', src + `
   return cases.map(function (c) {
-    return c.day ? editIconId(c.gameName, c.tagLine, c.day)
+    return c.day ? challengeIconId(c.gameName, c.tagLine, c.purpose, c.day)
                  : expectedIconId(c.gameName, c.tagLine);
   });
 `);
@@ -72,6 +73,13 @@ def smoke_test():
         assert ch not in cleaned, f"{ch!r} 가 남았습니다: {cleaned!r}"
     assert len(cleaned) <= self_edit.LIMITS["name"], cleaned
 
+    from riot import edit_icon_id, remove_icon_id
+    다른날 = sum(
+        edit_icon_id("홍길동", "KR1", d) != remove_icon_id("홍길동", "KR1", d)
+        for d in ("2026-09-04", "2026-09-05", "2026-09-06", "2026-09-07")
+    )
+    assert 다른날 >= 3, "수정용과 삭제용 번호가 거의 늘 같습니다 — 용도 구분이 깨졌습니다"
+
     낮 = self_edit.accepted_icons("홍길동", "KR1", datetime(2026, 9, 4, 12, 0, tzinfo=KST))
     새벽 = self_edit.accepted_icons("홍길동", "KR1", datetime(2026, 9, 4, 1, 0, tzinfo=KST))
     assert len(낮) == 1, 낮
@@ -81,16 +89,17 @@ def smoke_test():
 
 
 def build_cases():
-    cases = [{"gameName": g, "tagLine": t, "day": None} for g, t in IDS]
+    cases = [{"gameName": g, "tagLine": t, "day": None, "purpose": None} for g, t in IDS]
     for g, t in IDS:
         for day in DAYS:
-            cases.append({"gameName": g, "tagLine": t, "day": day})
+            for purpose in PURPOSES:
+                cases.append({"gameName": g, "tagLine": t, "day": day, "purpose": purpose})
     return cases
 
 
 def python_results(cases):
     return [
-        edit_icon_id(c["gameName"], c["tagLine"], c["day"]) if c["day"]
+        challenge_icon_id(c["gameName"], c["tagLine"], c["purpose"], c["day"]) if c["day"]
         else expected_icon_id(c["gameName"], c["tagLine"])
         for c in cases
     ]
@@ -135,7 +144,7 @@ def main():
 
     bad = [(c, a, b) for c, a, b in zip(cases, py, js) if a != b]
     for case, a, b in bad:
-        day = case["day"] or "(등록용·날짜 무관)"
+        day = f"{case['day']}/{case['purpose']}" if case["day"] else "(등록용·날짜 무관)"
         print(f"불일치: {case['gameName']}#{case['tagLine']} · {day} "
               f"→ python {a}번 / js {b}번", file=sys.stderr)
 
@@ -145,7 +154,8 @@ def main():
         print("이대로 두면 선수가 안내받은 아이콘으로 바꿔도 인증에 실패합니다.", file=sys.stderr)
         return 1
 
-    print(f"일치: {len(cases)}건 모두 같은 번호 (등록용 {len(IDS)}건 + 수정용 {len(cases) - len(IDS)}건)")
+    print(f"일치: {len(cases)}건 모두 같은 번호 "
+          f"(등록용 {len(IDS)}건 + 수정·삭제용 {len(cases) - len(IDS)}건)")
     return 0
 
 

@@ -9,13 +9,16 @@
 
 const $ = (sel) => document.querySelector(sel);
 
+/** 지금 고른 종목 (js/config.js 의 GAMES 중 하나) */
+let GAME = null;
+
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   $("#contact").textContent = SITE.contact;
 
   fillSelect($("#fRegion"), REGIONS);
-  fillSelect($("#fPosition"), POSITIONS);
+  buildGamePick();
 
   // 1단계 — 아이콘 번호 확인
   $("#checkBtn").addEventListener("click", checkIcon);
@@ -31,6 +34,47 @@ function init() {
   $("#fRiotId").addEventListener("input", () => { $("#fRiotId").dataset.touched = "1"; });
 
   $("#regForm").addEventListener("submit", submit);
+}
+
+/** 종목 고르기 — GAMES 목록을 읽어 그립니다 (종목이 늘어도 여기는 그대로) */
+function buildGamePick() {
+  const wrap = $("#gamePick");
+  wrap.innerHTML = GAMES.map(
+    (g) => `<button type="button" data-game="${g.id}">${g.name}</button>`
+  ).join("");
+  wrap.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("click", () => pickGame(gameById(b.dataset.game)));
+  });
+  pickGame(defaultGame());
+}
+
+function pickGame(game) {
+  GAME = game;
+  $("#gamePick").querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.game === game.id);
+  });
+  document.documentElement.style.setProperty("--accent", game.accent);
+  document.documentElement.style.setProperty("--accent-hover", game.accentHover);
+
+  // 종목마다 포지션 목록이 다릅니다. 고르던 값은 목록이 바뀌므로 비웁니다.
+  fillSelect($("#fPosition"), game.positions);
+
+  // 티어를 아직 못 가져오는 종목이면 그 사실을 미리 밝힙니다.
+  const note = $("#gameNote");
+  if (game.status === "live") {
+    note.hidden = true;
+  } else {
+    note.hidden = false;
+    note.innerHTML =
+      `<strong>${esc(game.name)}는 지금 명단만 받습니다.</strong> ` +
+      "티어 자동 수집은 Riot 승인이 나야 시작됩니다. " +
+      "지금 등록해 두시면 열리는 날 랭킹에 바로 올라갑니다 — 다시 등록하지 않아도 됩니다.";
+  }
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
 function fillSelect(sel, items) {
@@ -60,6 +104,7 @@ function setError(id, show) {
 
 function collect() {
   return {
+    game: GAME.id,
     riotId: $("#fRiotId").value.trim(),
     nickname: $("#fNick").value.trim(),
     region: $("#fRegion").value,
@@ -70,6 +115,7 @@ function collect() {
 
 function validate(data) {
   let ok = true;
+  ok = setError("#errGame", !data.game) && ok;
   ok = setError("#errRiotId", !splitRiotId(data.riotId)) && ok;
   ok = setError("#errNick", !data.nickname) && ok;
   ok = setError("#errRegion", !data.region) && ok;
@@ -145,6 +191,7 @@ function openMail(data) {
   const body = [
     "[충남 아마추어 랭킹] 선수 등록 신청",
     "",
+    `종목: ${GAME.name}`,
     `Riot ID: ${data.riotId}`,
     `표시 닉네임: ${data.nickname}`,
     `지역: ${data.region}`,
@@ -157,7 +204,7 @@ function openMail(data) {
 
   const href =
     `mailto:${SITE.contact}` +
-    `?subject=${encodeURIComponent("[랭킹] 선수 등록 신청 - " + data.nickname)}` +
+    `?subject=${encodeURIComponent("[랭킹] " + GAME.name + " 등록 신청 - " + data.nickname)}` +
     `&body=${encodeURIComponent(body)}`;
   location.href = href;
 

@@ -73,6 +73,9 @@ main { flex: 1; padding: 30px 0 60px; }
   background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border);
 }
 .game-tabs button.active .soon { background: rgba(255,255,255,.2); color: #fff; border-color: transparent; }
+/* 폼 안에서 쓸 때 (등록·수정 페이지) */
+.game-tabs.pick { margin: 0; }
+.game-tabs.pick button { padding: 9px 16px; font-size: 0.94rem; }
 
 /* 아직 열지 않은 종목 안내 */
 .notice-card { border-left: 3px solid var(--accent); }
@@ -275,6 +278,17 @@ tbody tr:hover { background: rgba(79, 140, 255, 0.06); }
 .btn.btn-lg { width: 100%; padding: 14px 22px; font-size: 1.05rem; margin-top: 6px; }
 .btn.btn-sm { padding: 6px 14px; font-size: 0.85rem; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.btn-danger { background: var(--down); }
+.btn.btn-danger:hover { background: #ff8585; }
+
+/* 되돌릴 수 없는 동작 앞의 경고 */
+.danger-note {
+  border: 1px solid var(--down);
+  background: rgba(255, 107, 107, 0.08);
+  border-radius: var(--radius); padding: 14px 18px; margin-bottom: 18px;
+  font-size: 0.92rem; color: var(--text-dim); line-height: 1.7;
+}
+.danger-note strong { color: var(--text); }
 
 .icon-result {
   display: none; margin-top: 14px; padding: 16px;

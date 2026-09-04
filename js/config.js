@@ -116,6 +116,17 @@ function gameById(id) {
   return GAMES.find((g) => g.id === id) || null;
 }
 
+/**
+ * 선수 한 명이 등록한 종목 정보 — { lol: {position}, ... }
+ *
+ * players.json 이 아직 옛 형식(최상위 position, games 없음)일 수도 있어
+ * 그 경우 롤 한 종목으로 봅니다. 배포가 잠깐 어긋나도 화면이 비지 않도록.
+ */
+function playerGames(player) {
+  if (player && player.games && typeof player.games === "object") return player.games;
+  return { lol: { position: (player && player.position) || "" } };
+}
+
 /** 처음 보여줄 종목 — 운영 중인 것 중 첫 번째 */
 function defaultGame() {
   return GAMES.find((g) => g.status === "live") || GAMES[0];

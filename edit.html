@@ -89,15 +89,19 @@
           <input type="text" id="fNick" placeholder="본인이 원하는 대로 정하세요" maxlength="20" autocomplete="off">
         </div>
 
-        <div class="grid-2">
-          <div class="field">
-            <label for="fRegion">지역</label>
-            <select id="fRegion"><option value="">선택하세요</option></select>
-          </div>
-          <div class="field">
-            <label for="fPosition">주 포지션</label>
-            <select id="fPosition"><option value="">선택하세요</option></select>
-          </div>
+        <div class="field">
+          <label for="fRegion">지역</label>
+          <select id="fRegion"><option value="">선택하세요</option></select>
+        </div>
+
+        <div class="field" id="gameField" hidden>
+          <label>주 포지션을 바꿀 종목</label>
+          <div class="game-tabs pick" id="gamePick"></div>
+        </div>
+
+        <div class="field">
+          <label for="fPosition">주 포지션 <span class="opt" id="posGame"></span></label>
+          <select id="fPosition"><option value="">선택하세요</option></select>
         </div>
 
         <div class="field">
@@ -138,10 +142,16 @@
 
     <!-- ── 안내 ──────────────────────────────────────────── -->
     <section class="card">
-      <h2>등록을 아예 취소하고 싶다면</h2>
+      <h2>랭킹에서 빼고 싶다면</h2>
       <p>
-        <span id="contact"></span>로 Riot ID를 알려주시면 랭킹·기록·연락처 명단에서 모두 지웁니다.
-        삭제는 본인 확인 후 처리하며, 되돌릴 수 없습니다.
+        본인이 직접 지울 수 있습니다. 종목 하나만 해지할 수도 있고, 전부 지울 수도 있습니다.
+        <strong>되돌릴 수 없으니</strong> 삭제 페이지의 안내를 먼저 읽어 주세요.
+      </p>
+      <p style="margin-top:14px">
+        <a class="btn ghost" href="remove.html">등록 삭제 페이지 열기</a>
+      </p>
+      <p style="margin-top:12px; color:var(--text-dim); font-size:0.88rem">
+        직접 하기 어려우시면 <span id="contact"></span>로 Riot ID를 알려주셔도 됩니다.
       </p>
     </section>
   </div>

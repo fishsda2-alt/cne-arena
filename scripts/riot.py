@@ -67,19 +67,32 @@ def kst_today():
     return datetime.now(KST).date().isoformat()
 
 
-def edit_icon_id(game_name, tag_line, day=None):
+def challenge_icon_id(game_name, tag_line, purpose, day=None):
     """
-    정보 수정용 아이콘 번호 — 등록용과 달리 KST 날짜마다 바뀝니다.
+    본인 확인용 아이콘 번호 — 등록용과 달리 KST 날짜마다 바뀝니다.
 
     등록용 번호는 Riot ID만으로 정해져 영원히 같습니다. 등록은 1회성이라 괜찮지만,
-    수정은 반복되는 행위라 사정이 다릅니다. 인증 후 아이콘을 되돌리지 않은 선수가 있으면
-    Riot ID만 아는 다른 사람이 수정 신청을 그냥 통과시킬 수 있습니다.
-    그래서 날짜를 섞어 매일 다른 번호가 나오게 하고, 등록용 번호와도 겹치지 않게 합니다.
-    (js/verify.js의 editIconId와 같은 결과를 냅니다)
+    수정·삭제는 반복되는 행위라 사정이 다릅니다. 인증 후 아이콘을 되돌리지 않은
+    선수가 있으면 Riot ID만 아는 사람이 그 선수의 정보를 건드릴 수 있습니다.
+    그래서 날짜를 섞어 매일 다른 번호가 나오게 합니다.
+
+    purpose 로 용도까지 가릅니다. 수정용 아이콘이 삭제까지 통과시키면,
+    오늘 정보를 고친 선수를 같은 날 남이 지울 수 있게 되기 때문입니다.
+    (js/verify.js 의 challengeIconId 와 같은 결과를 냅니다)
     """
     day = day or kst_today()
-    key = f"{normalize_riot_id(game_name, tag_line)}|{day}|edit"
+    key = f"{normalize_riot_id(game_name, tag_line)}|{day}|{purpose}"
     return VERIFY_ICONS[zlib.crc32(key.encode("utf-8")) % len(VERIFY_ICONS)]
+
+
+def edit_icon_id(game_name, tag_line, day=None):
+    """정보 수정용 번호"""
+    return challenge_icon_id(game_name, tag_line, "edit", day)
+
+
+def remove_icon_id(game_name, tag_line, day=None):
+    """등록 삭제용 번호 — 수정용과 다른 번호가 나옵니다"""
+    return challenge_icon_id(game_name, tag_line, "remove", day)
 
 
 class RiotAPI:

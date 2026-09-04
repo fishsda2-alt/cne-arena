@@ -39,12 +39,15 @@ jobs:
           IN_POSITION: ${{ github.event.client_payload.position }}
           IN_TEAM: ${{ github.event.client_payload.team }}
           IN_CLEAR_TEAM: ${{ github.event.client_payload.clearTeam }}
+          IN_GAME: ${{ github.event.client_payload.game }}
         run: |
           set -o pipefail
           # 빈 소속은 "안 바꿈"이라, 지우려면 별도 플래그로 알려야 합니다.
           CLEAR=""
           if [ "$IN_CLEAR_TEAM" = "true" ]; then CLEAR="--clear-team"; fi
+          GAME="${IN_GAME:-lol}"
           python scripts/self_edit.py \
+            --game "$GAME" \
             --riot-id "$IN_RIOT_ID" \
             --name "$IN_NAME" \
             --region "$IN_REGION" \

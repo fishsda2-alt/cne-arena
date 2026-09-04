@@ -2,63 +2,37 @@
 선수 본인이 신청한 정보 수정 — 사이트 '정보 수정' 페이지에서 들어옵니다.
 
 운영자용 manage_player.py 와 달리 **아이콘 인증을 반드시 거칩니다.**
-바꿀 수 있는 항목은 표시 닉네임·지역·주 포지션·소속뿐입니다.
+닉네임·지역·소속은 종목 공통이고, 포지션만 종목마다 따로입니다.
 
 Riot ID 변경은 이 경로에서 받지 않습니다. 계정이 바뀌면 puuid가 달라져 지금까지의
 티어 기록과 이어지지 않으므로, 사실상 재등록이라 운영자가 판단해야 합니다.
 
 사용법:
-  python scripts/self_edit.py --riot-id "홍길동#KR1" --name 새닉네임 --position 정글
+  python scripts/self_edit.py --riot-id "홍길동#KR1" --name 새닉네임
+  python scripts/self_edit.py --riot-id "홍길동#KR1" --game val --position 타격대
 옵션:
   --clear-team    소속을 비웁니다 (빈 값은 "안 바꿈"이라 지울 때는 이 플래그가 필요)
   --skip-verify   아이콘 인증 없이 수정 (운영자가 오프라인으로 본인 확인을 끝낸 경우)
 """
 
 import argparse
-import json
 import os
 import re
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
-from riot import (
-    NotFound, RiotAPI, RiotError,
-    edit_icon_id, normalize_riot_id, split_riot_id,
-)
-
-KST = timezone(timedelta(hours=9))
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA = os.path.join(ROOT, "data")
-PLAYERS_FILE = os.path.join(DATA, "players.json")
-RANKING_FILE = os.path.join(DATA, "ranking.json")
+import players as P
+from riot import KST, NotFound, RiotAPI, RiotError, split_riot_id
+from verify_common import accepted_icons, verify_icon  # noqa: F401 (accepted_icons 는 자가 점검이 씁니다)
 
 # 랭킹표에 그대로 노출되는 값이므로 길이를 제한합니다 (등록 폼과 같은 기준).
-LIMITS = {"name": 20, "team": 30, "region": 10, "position": 6}
-POSITIONS = ["탑", "정글", "미드", "원딜", "서포터"]
-
-# 자정 직전에 페이지를 열고 자정 직후에 제출하면 안내받은 번호가 '어제 번호'가 됩니다.
-# 그 시간대에 한해 어제 번호도 인정합니다 (통과 가능한 번호가 늘어나므로 새벽에만).
-GRACE_UNTIL_HOUR = 3
+LIMITS = {"name": 20, "team": 30, "region": 10}
 
 # 값에서 지워버릴 글자 — 줄바꿈·탭·따옴표·역슬래시 등 워크플로로 넘어가면 곤란한 것들.
 # 역슬래시는 chr(92)로 씁니다. 정규식 문자 클래스 안에 직접 적으면 이스케이프가
 # 한 겹 벗겨졌을 때 "[...\]" 가 되어 문자 클래스가 안 닫히고 조용히 깨집니다.
 STRIP_CHARS = frozenset("\r\n\t\"'`$" + chr(92))
-
-
-def read_json(path, fallback):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return fallback
-
-
-def write_json(path, obj):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
-        f.write("\n")
 
 
 def sanitize(field, value):
@@ -68,68 +42,41 @@ def sanitize(field, value):
     return value[: LIMITS[field]]
 
 
-def accepted_icons(game_name, tag_line, now):
-    """지금 인정되는 인증 아이콘 번호들 (보통 1개, 새벽에는 어제 것도 함께)"""
-    today = now.date()
-    days = [today.isoformat()]
-    if now.hour < GRACE_UNTIL_HOUR:
-        days.append((today - timedelta(days=1)).isoformat())
-    return {edit_icon_id(game_name, tag_line, d) for d in days}
+def apply_to_ranking(player_id, shared, game, position):
+    """사이트가 읽는 ranking 파일에도 즉시 반영합니다 (API 호출 없음).
 
-
-def verify_icon(api, player, game_name, tag_line):
-    """프로필 아이콘이 오늘의 인증 번호인지 확인합니다."""
-    want = accepted_icons(game_name, tag_line, datetime.now(KST))
-    shown = " 또는 ".join(str(n) for n in sorted(want))
-    attempts = max(1, int(os.environ.get("VERIFY_ATTEMPTS", "3")))
-    delay = int(os.environ.get("VERIFY_DELAY", "25"))
-
-    got = None
-    for i in range(attempts):
-        if i:
-            print(f"    · 아이콘이 아직 {shown}번이 아닙니다(현재 {got}번). "
-                  f"{delay}초 후 재확인 ({i + 1}/{attempts})")
-            time.sleep(delay)
-        try:
-            summoner = api.summoner_by_puuid(player["puuid"])
-        except RiotError as e:
-            print(f"오류: 소환사 조회 실패 — {e}", file=sys.stderr)
-            return False
-        got = summoner.get("profileIconId")
-        if got in want:
-            print(f"인증 성공: 프로필 아이콘 {got}번 확인")
-            return True
-
-    print(f"인증 실패: 현재 아이콘 {got}번, 필요한 아이콘 {shown}번", file=sys.stderr)
-    print("      수정 페이지에 나온 번호로 아이콘을 바꾸고 로비로 나온 뒤 다시 신청하세요.", file=sys.stderr)
-    print("      ※ 수정용 번호는 매일 바뀝니다. 어제 안내받은 번호는 통과하지 않습니다.", file=sys.stderr)
-    return False
-
-
-def apply_to_ranking(player_id, changes):
-    """사이트가 읽는 ranking.json에도 즉시 반영합니다 (API 호출 없음).
-
-    이걸 하지 않으면 다음 날 04:10 자동 갱신 전까지 화면이 그대로라
+    이걸 하지 않으면 다음 갱신 전까지 화면이 그대로라
     '바꿨는데 안 바뀐다'는 문의가 옵니다.
+    닉네임·지역·소속은 모든 종목의 파일에, 포지션은 그 종목의 파일에만 반영합니다.
     """
-    data = read_json(RANKING_FILE, None)
-    if not data:
-        return
-    for entry in data.get("players", []):
-        if entry.get("id") == player_id:
-            entry.update(changes)
-            write_json(RANKING_FILE, data)
-            return
+    for g, path in P.RANKING_FILES.items():
+        data = P.read_json(path, None)
+        if not data:
+            continue
+        changed = False
+        for entry in data.get("players", []):
+            if entry.get("id") != player_id:
+                continue
+            if shared:
+                entry.update(shared)
+                changed = True
+            if position is not None and g == game:
+                entry["position"] = position
+                changed = True
+        if changed:
+            P.write_json(path, data)
 
 
 def main():
     ap = argparse.ArgumentParser(description="충남 아마추어 랭킹 - 선수 본인 정보 수정")
     ap.add_argument("--riot-id", required=True, help='예: "홍길동#KR1"')
+    ap.add_argument("--game", default=None, choices=sorted(P.POSITIONS),
+                    help="포지션을 바꿀 종목")
     ap.add_argument("--name", default="", help="표시 닉네임 (비우면 그대로)")
     ap.add_argument("--team", default="", help="소속 (비우면 그대로)")
     ap.add_argument("--region", default="", help="지역 (비우면 그대로)")
-    ap.add_argument("--position", default="", help="주 포지션 (비우면 그대로)")
-    ap.add_argument("--clear-team", action="store_true", help="소속을 비웁니다 (빈 값은 \"안 바꿈\"이라 별도 플래그가 필요)")
+    ap.add_argument("--position", default="", help="주 포지션 (--game 과 함께, 비우면 그대로)")
+    ap.add_argument("--clear-team", action="store_true", help="소속을 비웁니다")
     ap.add_argument("--skip-verify", action="store_true", help="아이콘 인증 생략 (운영자용)")
     args = ap.parse_args()
 
@@ -139,13 +86,8 @@ def main():
         print(f"오류: {e}", file=sys.stderr)
         return 1
 
-    data = read_json(PLAYERS_FILE, {"players": []})
-    key = normalize_riot_id(game_name, tag_line)
-    player = next(
-        (p for p in data.get("players", [])
-         if normalize_riot_id(p["gameName"], p["tagLine"]) == key),
-        None,
-    )
+    data = P.load()
+    player = P.find_by_riot_id(data["players"], game_name, tag_line)
     if not player:
         print(f"오류: 등록되지 않은 Riot ID입니다 — {game_name}#{tag_line}", file=sys.stderr)
         print("      먼저 등록 페이지에서 선수 등록을 마쳐 주세요.", file=sys.stderr)
@@ -156,26 +98,34 @@ def main():
         print("오류: 정보 수정은 하루 한 번만 가능합니다. 내일 다시 시도해 주세요.", file=sys.stderr)
         return 1
 
-    # 바꿀 값 정리 — 현재 값과 같은 항목은 버립니다.
-    changes = {}
-    for field, raw in (
-        ("name", args.name), ("team", args.team),
-        ("region", args.region), ("position", args.position),
-    ):
+    # 종목 공통 항목 — 현재 값과 같으면 버립니다.
+    shared = {}
+    for field, raw in (("name", args.name), ("team", args.team), ("region", args.region)):
         value = sanitize(field, raw)
         if not value or value == player.get(field, ""):
             continue
-        changes[field] = value
+        shared[field] = value
 
     # 빈 값은 "그대로 둠"이므로, 소속을 지우려면 별도 신호가 필요합니다.
     if args.clear_team and player.get("team"):
-        changes["team"] = ""
+        shared["team"] = ""
 
-    if changes.get("position") and changes["position"] not in POSITIONS:
-        print(f"오류: 주 포지션은 {' / '.join(POSITIONS)} 중 하나여야 합니다.", file=sys.stderr)
-        return 1
+    # 포지션은 종목별입니다.
+    game = args.game or (P.games_of(player) or [P.DEFAULT_GAME])[0]
+    position = None
+    want = args.position.strip()
+    if want:
+        if not P.has_game(player, game):
+            print(f"오류: 이 선수는 {P.game_name(game)}에 등록돼 있지 않습니다.", file=sys.stderr)
+            return 1
+        if not P.valid_position(game, want):
+            print(f"오류: {P.game_name(game)}의 주 포지션은 "
+                  f"{' / '.join(P.POSITIONS[game])} 중 하나여야 합니다.", file=sys.stderr)
+            return 1
+        if want != P.position_of(player, game):
+            position = want
 
-    if not changes:
+    if not shared and position is None:
         print("바뀐 항목이 없습니다. (입력값이 지금 정보와 같습니다)")
         return 0
 
@@ -198,18 +148,21 @@ def main():
                   file=sys.stderr)
             return 1
 
-        if not verify_icon(api, player, game_name, tag_line):
+        if not verify_icon(api, player["puuid"], game_name, tag_line, "edit", "수정"):
             return 1
 
     print(f"수정: {player['id']} · {player.get('name')}")
-    for field, value in changes.items():
+    for field, value in shared.items():
         print(f"  · {field}: {player.get(field, '')!r} → {value!r}")
+    if position is not None:
+        print(f"  · position({game}): {P.position_of(player, game)!r} → {position!r}")
 
-    player.update(changes)
+    player.update(shared)
+    if position is not None:
+        P.set_position(player, game, position)
     player["lastEditAt"] = today
-    data["updatedAt"] = datetime.now(KST).isoformat(timespec="seconds")
-    write_json(PLAYERS_FILE, data)
-    apply_to_ranking(player["id"], changes)
+    P.save(data)
+    apply_to_ranking(player["id"], shared, game, position)
     print("완료: 랭킹 화면에 바로 반영됩니다.")
     return 0
 

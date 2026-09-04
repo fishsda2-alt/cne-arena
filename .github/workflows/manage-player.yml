@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "작업 (pro=★켜기, unpro=★끄기, edit=프로필 수정)"
+        description: "작업 (pro=★켜기, unpro=★끄기, edit=프로필 수정, drop=종목만 해지, remove=완전 삭제)"
         type: choice
         required: true
-        options: [approve, hold, pro, unpro, edit, remove]
+        options: [approve, hold, pro, unpro, edit, drop, remove]
         default: approve
       who:
         description: "선수 ID(p001) 또는 Riot ID(홍길동#KR1)"
@@ -25,6 +25,11 @@ on:
       position:
         description: "[edit] 새 주 포지션"
         required: false
+      game:
+        description: "[edit/drop] 대상 종목"
+        type: choice
+        options: [lol, val]
+        default: lol
 
 concurrency:
   group: ranking-data
@@ -50,13 +55,15 @@ jobs:
           IN_TEAM: ${{ inputs.team }}
           IN_REGION: ${{ inputs.region }}
           IN_POSITION: ${{ inputs.position }}
+          IN_GAME: ${{ inputs.game }}
         run: |
           python scripts/manage_player.py "${{ inputs.action }}" \
             --who "$IN_WHO" \
             --name "$IN_NAME" \
             --team "$IN_TEAM" \
             --region "$IN_REGION" \
-            --position "$IN_POSITION"
+            --position "$IN_POSITION" \
+            --game "$IN_GAME"
 
       - name: 커밋
         env:

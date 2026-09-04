@@ -16,10 +16,17 @@
 수정 폼(edit.html) → Google Apps Script → repository_dispatch
   → edit-from-site.yml → 아이콘 인증(날짜별 번호) → players.json + ranking.json 커밋
   → Pages 배포
+
+삭제 폼(remove.html) → Google Apps Script → repository_dispatch
+  → remove-from-site.yml → 아이콘 인증(삭제용 번호) → 명단·랭킹·기록에서 제거
 ```
 
 - `data/players.json` — 등록 선수 명단(운영자가 직접 고치지 않음, 워크플로가 관리)
-- `data/ranking.json` — 사이트가 읽는 유일한 파일. 매일 04:10 KST 재생성
+  한 선수가 여러 종목에 등록할 수 있습니다. 닉네임·지역·소속은 공통이고
+  **포지션만 종목별**입니다 — `games: {lol: {position}, val: {position}}`.
+  읽고 쓰는 일은 `scripts/players.py` 한 곳으로 모았습니다.
+- `data/ranking.json` — 롤 랭킹. 매일 04:10 KST 재생성
+  (종목마다 파일이 하나씩입니다. 롤만 이름에 종목이 없는 것은 워크플로가 쓰는 경로라서)
 - `data/history/YYYY-MM.json` — 일별 스냅샷(주간 LP 상승폭 계산용)
 - `scripts/` — 외부 패키지 0개, 표준 라이브러리만 사용
 - `scripts/apps-script/register-proxy.gs` — 구글 Apps Script에 붙여넣는 중계 코드
@@ -41,11 +48,13 @@ GitHub은 `GITHUB_TOKEN`으로 만든 커밋으로는 다른 워크플로를 실
 **워크플로를 고친 뒤에는 `Re-run jobs`로 확인하지 말 것.**
 재실행은 원래 실행 시점의 커밋 코드로 돕니다. 새로 트리거해야 최신 코드가 돕니다.
 
-**정보 수정용 인증 번호에는 반드시 날짜를 섞을 것.**
+**수정·삭제 인증 번호는 날짜와 용도를 함께 섞을 것.**
 등록용 번호(`expected_icon_id`)는 Riot ID만으로 정해져 영원히 같습니다.
 등록은 1회성(중복 Riot ID 거부)이라 괜찮지만, 수정은 반복되는 행위라 사정이 다릅니다.
 인증 후 아이콘을 되돌리지 않은 선수가 있으면 **Riot ID만 아는 사람이 그 선수의 정보를
-고칠 수 있습니다.** 그래서 수정용은 `edit_icon_id`로 날짜를 섞어 매일 번호가 바뀝니다.
+고칠 수 있습니다.** 그래서 `challenge_icon_id`가 날짜를 섞어 매일 번호가 바뀝니다.
+**용도(edit/remove)도 섞습니다.** 같은 번호면, 오늘 정보를 고치려고 아이콘을
+바꿔 둔 선수를 같은 날 남이 삭제할 수 있습니다. 삭제는 되돌릴 수 없습니다.
 자정 경계 때문에 새벽 3시 전까지는 어제 번호도 인정합니다.
 
 **인증 번호를 고쳤으면 `js/verify.js`와 `scripts/riot.py`를 함께 고칠 것.**

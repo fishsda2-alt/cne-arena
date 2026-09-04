@@ -6,6 +6,7 @@
  *
  *   등록 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 등록 완료
  *   수정 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 수정 완료
+ *   삭제 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 삭제 완료
  *
  * ── 설치 방법 ─────────────────────────────────────────────
  * 1. https://script.google.com 에서 [새 프로젝트]
@@ -42,8 +43,14 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
 
-    // action 이 'edit' 이면 정보 수정, 없거나 그 밖이면 신규 등록입니다.
-    var isEdit = String(data.action || '') === 'edit';
+    // action: 'edit' 정보 수정 · 'remove' 등록 삭제 · 그 밖이면 신규 등록
+    var action = String(data.action || '');
+    var isEdit = action === 'edit';
+    var isRemove = action === 'remove';
+
+    // 종목 코드. 빈 값은 등록·수정에서는 롤, 삭제에서는 '전체 삭제'를 뜻합니다.
+    var game = String(data.game || '').trim();
+    if (game && !/^[a-z]{2,8}$/.test(game)) return fail('종목 값이 올바르지 않습니다.');
 
     var riotId = String(data.riotId || '').trim();
     var nickname = String(data.nickname || '').trim();
@@ -58,8 +65,10 @@ function doPost(e) {
     if (nickname.length > 20) return fail('닉네임은 20자 이내로 입력해 주세요.');
     if (team.length > 30) return fail('소속은 30자 이내로 입력해 주세요.');
 
-    // 등록은 모든 항목이 필요하지만, 수정은 바꾸는 항목만 있으면 됩니다.
-    if (!isEdit) {
+    // 삭제는 Riot ID와 범위만 있으면 됩니다.
+    if (isRemove) {
+      // 아래 검증들을 건너뜁니다.
+    } else if (!isEdit) {
       if (!nickname) return fail('표시 닉네임을 입력해 주세요.');
       if (!region) return fail('지역을 선택해 주세요.');
       if (!position) return fail('주 포지션을 선택해 주세요.');
@@ -95,27 +104,31 @@ function doPost(e) {
           Accept: 'application/vnd.github+json'
         },
         payload: JSON.stringify({
-          event_type: isEdit ? 'edit-player' : 'register-player',
+          event_type: isRemove ? 'remove-player'
+            : (isEdit ? 'edit-player' : 'register-player'),
           client_payload: {
             riotId: riotId,
             nickname: nickname,
             region: region,
             position: position,
             team: team,
-            clearTeam: clearTeam
+            clearTeam: clearTeam,
+            game: game
           }
         }),
         muteHttpExceptions: true
       }
     );
 
+    function kindName() { return isRemove ? '삭제' : (isEdit ? '수정' : '등록'); }
+
     var code = res.getResponseCode();
     if (code !== 204) {
       console.error('GitHub dispatch 실패: ' + code + ' ' + res.getContentText());
-      return fail((isEdit ? '수정' : '등록') + ' 서버에 전달하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return fail(kindName() + ' 서버에 전달하지 못했습니다. 잠시 후 다시 시도해 주세요.');
     }
 
-    logSubmission(isEdit ? '수정' : '등록', riotId, nickname);
+    logSubmission(kindName(), riotId, nickname);
     return ok();
   } catch (err) {
     console.error(err);

@@ -28,9 +28,10 @@
     </div>
 
     <div class="notice">
-      지금은 <strong>리그 오브 레전드</strong> 등록만 받고 있습니다.
-      발로란트는 준비 중이며, Riot 계정이 같기 때문에
-      <strong>지금 등록해 두시면 발로란트가 열릴 때 다시 등록하지 않아도 됩니다.</strong>
+      본인 확인은 <strong>롤 프로필 아이콘</strong>으로 합니다. Riot 계정이 하나라서,
+      롤로 확인하면 같은 계정의 발로란트도 본인 것으로 인정됩니다.
+      그래서 <strong>발로란트만 하실 분도 롤 계정이 있어야</strong> 자동 등록이 됩니다.
+      (롤을 아예 안 하신다면 아래 이메일로 문의해 주세요)
     </div>
 
     <!-- ── 1단계 ─────────────────────────────────────────── -->
@@ -75,6 +76,14 @@
       <p>아래 항목만 입력하면 등록이 끝납니다. <strong>실명·연락처는 받지 않습니다.</strong></p>
 
       <form id="regForm" novalidate>
+        <div class="field">
+          <label>등록할 종목 <span class="req">필수</span></label>
+          <div class="game-tabs pick" id="gamePick"></div>
+          <p class="err" id="errGame">등록할 종목을 골라 주세요.</p>
+        </div>
+
+        <div class="notice" id="gameNote" hidden></div>
+
         <div class="field">
           <label for="fRiotId">Riot ID <span class="req">필수</span></label>
           <input type="text" id="fRiotId" placeholder="예: 홍길동#KR1" autocomplete="off">
