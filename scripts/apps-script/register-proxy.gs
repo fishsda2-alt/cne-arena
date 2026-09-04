@@ -126,7 +126,7 @@ function doPost(e) {
 /** 브라우저가 주소를 직접 열었을 때 */
 function doGet() {
   return ContentService
-    .createTextOutput('CN RANK 등록 중계 서버가 동작 중입니다.')
+    .createTextOutput('CHUNGNAM RANK.GG 등록 중계 서버가 동작 중입니다.')
     .setMimeType(ContentService.MimeType.TEXT);
 }
 

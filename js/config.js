@@ -3,7 +3,7 @@
  */
 const SITE = {
   name: "충남 아마추어 랭킹",
-  short: "CN RANK",
+  short: "CHUNGNAM RANK.GG",
   contact: "fishsda2@gmail.com",
   // 자동 등록 주소 (Google Apps Script 웹앱). README '자동 등록 연결하기' 참고.
   //  · 설정하면 등록 페이지에서 제출하는 즉시 아이콘 인증 → 자동 등록까지 진행됩니다.
