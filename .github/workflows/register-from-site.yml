@@ -38,12 +38,25 @@ jobs:
           IN_POSITION: ${{ github.event.client_payload.position }}
           IN_TEAM: ${{ github.event.client_payload.team }}
         run: |
+          set -o pipefail
           python scripts/add_player.py \
             --riot-id "$IN_RIOT_ID" \
             --name "$IN_NAME" \
             --region "$IN_REGION" \
             --position "$IN_POSITION" \
-            --team "$IN_TEAM"
+            --team "$IN_TEAM" 2>&1 | tee /tmp/register-out.txt
+
+      # 로그를 펼치지 않아도 실행 요약 화면에서 결과를 바로 볼 수 있게 합니다.
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 등록 결과"
+            echo ""
+            echo '```'
+            cat /tmp/register-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 커밋 후 랭킹 즉시 반영
         env:
