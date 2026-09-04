@@ -1,7 +1,37 @@
 {
-  "updatedAt": "2026-09-04T18:50:27+09:00",
-  "playerCount": 0,
+  "updatedAt": "2026-09-04T20:35:28+09:00",
+  "playerCount": 1,
   "rankedCount": 0,
   "errors": [],
-  "players": []
+  "players": [
+    {
+      "id": "p001",
+      "name": "test3",
+      "team": "",
+      "region": "천안",
+      "position": "정글",
+      "gameName": "Yeunsb",
+      "tagLine": "KR1",
+      "proAspirant": false,
+      "tier": null,
+      "division": "",
+      "lp": 0,
+      "wins": 0,
+      "losses": 0,
+      "games": 0,
+      "winRate": 0.0,
+      "hotStreak": false,
+      "inactive": false,
+      "score": null,
+      "label": "언랭크",
+      "flex": null,
+      "profileIconId": 8,
+      "summonerLevel": 39,
+      "stale": false,
+      "rank": null,
+      "lpDelta": null,
+      "rankDelta": null,
+      "weeklyLpDelta": null
+    }
+  ]
 }
