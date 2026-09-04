@@ -9,7 +9,7 @@ const SITE = {
   // 자동 등록 주소 (Google Apps Script 웹앱). README '자동 등록 연결하기' 참고.
   //  · 설정하면 등록 페이지에서 제출하는 즉시 아이콘 인증 → 자동 등록까지 진행됩니다.
   //  · 비워두면 입력값이 채워진 이메일 창이 열리고, 운영자가 수동으로 등록합니다.
-  submitUrl: "",
+  submitUrl: "https://script.google.com/macros/s/AKfycbwSA4iSJLt3cbQFWT4YWTgbIW7mmo3F6-GlQ1FQzIHAH-XA35ddta2iH0vcD4lHXEjIHw/exec",
   // 운영자 GitHub 저장소 (등록 신청 안내용, 비워도 됩니다)
   repoUrl: ""
 };
