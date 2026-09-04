@@ -1,0 +1,51 @@
+name: 발로란트 API 점검
+
+# 지금 키로 발로란트에서 무엇을 할 수 있는지만 확인합니다.
+# 등록·랭킹·데이터를 전혀 건드리지 않으므로 몇 번이든 눌러도 안전합니다.
+#
+# 발로란트를 붙이기 전에 이걸 먼저 돌리세요. Riot 키는 앱 승인 용도별로 제품 권한이
+# 갈려서, 롤 래더 용도로 승인받은 키가 발로란트까지 열어 준다는 보장이 없습니다.
+# 결과에 따라 만들 것이 완전히 달라집니다.
+on:
+  workflow_dispatch:
+    inputs:
+      riot_id:
+        description: "조회해볼 Riot ID (비우면 등록된 첫 선수로 시험)"
+        required: false
+      region:
+        description: "발로란트 라우팅 (kr / ap / na / eu ...)"
+        required: false
+        default: "kr"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 발로란트 점검
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          CHECK_RIOT_ID: ${{ inputs.riot_id }}
+          RIOT_VAL_REGION: ${{ inputs.region }}
+        run: |
+          set -o pipefail
+          python scripts/check_val.py 2>&1 | tee /tmp/val-out.txt
+
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 발로란트 API 점검 결과"
+            echo ""
+            echo '```'
+            cat /tmp/val-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

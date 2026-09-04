@@ -118,6 +118,36 @@ class RiotAPI:
             return "(너무 짧아 표시 생략)"
         return f"RGAPI-{body[:3]}…{body[-3:]}"
 
+
+    def probe(self, host, path):
+        """
+        엔드포인트를 한 번만 두드려 (상태코드, 본문, 비고)를 그대로 돌려줍니다. 예외 없음.
+
+        _get 은 403을 "키가 잘못됐다"로 해석해 안내를 냅니다. 하지만 어떤 제품 API를
+        쓸 수 있는지 알아볼 때는 403이 "키는 멀쩡한데 이 제품에는 권한이 없다"는
+        정상적인 대답입니다. 그래서 점검용 경로는 판단하지 않고 사실만 전달합니다.
+        """
+        self._throttle()
+        conn = http.client.HTTPSConnection(host, timeout=15)
+        try:
+            conn.request("GET", path, headers={"X-Riot-Token": self.api_key})
+            res = conn.getresponse()
+            status = res.status
+            body = res.read()
+        except (OSError, http.client.HTTPException) as e:
+            return 0, None, f"네트워크 오류: {e}"
+        finally:
+            conn.close()
+
+        if status == 200:
+            try:
+                return status, json.loads(body.decode("utf-8")), ""
+            except (ValueError, UnicodeDecodeError):
+                return status, None, "응답이 JSON이 아닙니다"
+
+        # 오류 본문에는 키가 담기지 않지만, 그래도 앞부분만 잘라 씁니다.
+        return status, None, body[:160].decode("utf-8", "replace").replace("\n", " ").strip()
+
     # ---------- 내부 ----------
 
     def _throttle(self):
