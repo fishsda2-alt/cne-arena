@@ -1,0 +1,42 @@
+name: API 키 점검
+
+# Secret에 든 RIOT_API_KEY가 실제로 동작하는지 확인만 합니다.
+# 아무것도 등록하거나 바꾸지 않으므로 몇 번이든 눌러도 안전합니다.
+on:
+  workflow_dispatch:
+    inputs:
+      riot_id:
+        description: "조회해볼 Riot ID (비우면 아무 계정으로 시험)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 키 점검
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+          CHECK_RIOT_ID: ${{ inputs.riot_id }}
+        run: |
+          set -o pipefail
+          python scripts/check_key.py 2>&1 | tee /tmp/check-out.txt
+
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### API 키 점검 결과"
+            echo ""
+            echo '```'
+            cat /tmp/check-out.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
