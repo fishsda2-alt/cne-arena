@@ -19,25 +19,63 @@ async function fetchEvents() {
   }
 }
 
-/** 대회 안내 페이지 — 진행 중·예정을 위에, 지난 대회를 아래에 */
+let EVENTS = [];
+
+/** 대회 안내 페이지 — 종목·상태로 걸러 봅니다 */
 async function renderEventsPage() {
-  const all = await fetchEvents();
+  const games = typeof GAMES !== "undefined" ? GAMES : [];
+  document.querySelector("#fGame").innerHTML =
+    '<option value="">전체 종목</option>' +
+    games.map((g) => `<option value="${escEv(g.id)}">${escEv(g.name)}</option>`).join("");
+
+  ["#q", "#fGame", "#fState"].forEach((sel) => {
+    const el = document.querySelector(sel);
+    el.addEventListener("input", drawEvents);
+    el.addEventListener("change", drawEvents);
+  });
+
+  EVENTS = (await fetchEvents()) || [];
+  drawEvents();
+}
+
+function drawEvents() {
   const today = kstToday();
+  const q = document.querySelector("#q").value.trim().toLowerCase();
+  const game = document.querySelector("#fGame").value;
+  const state = document.querySelector("#fState").value;
 
-  const live = (all || [])
-    .filter((e) => !e.end || e.end >= today)
-    .sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999"));
-  const past = (all || [])
-    .filter((e) => e.end && e.end < today)
-    .sort((a, b) => (b.end || "").localeCompare(a.end || ""));
+  const stateOf = (e) => {
+    if (e.end && e.end < today) return "ended";
+    if (e.start && e.start <= today) return "running";
+    return "soon";
+  };
 
-  document.querySelector("#eventList").innerHTML = live.map((e) => card(e, today)).join("");
-  document.querySelector("#eventEmpty").hidden = live.length > 0;
+  const list = EVENTS.filter((e) => {
+    if (game && e.game !== game) return false;
+    const st = stateOf(e);
+    if (state === "open" && st === "ended") return false;
+    if (state && state !== "open" && st !== state) return false;
+    if (q && !`${e.name} ${e.host || ""} ${e.note || ""}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
 
-  if (past.length) {
-    document.querySelector("#pastList").innerHTML = past.map((e) => card(e, today)).join("");
-    document.querySelector("#pastBox").hidden = false;
-  }
+  // 끝나지 않은 대회는 시작이 빠른 순, 끝난 대회는 최근에 끝난 순으로.
+  list.sort((a, b) => {
+    const ea = stateOf(a) === "ended", eb = stateOf(b) === "ended";
+    if (ea !== eb) return ea ? 1 : -1;
+    return ea
+      ? (b.end || "").localeCompare(a.end || "")
+      : (a.start || "9999").localeCompare(b.start || "9999");
+  });
+
+  document.querySelector("#count").textContent = `${list.length}건`;
+  document.querySelector("#eventList").innerHTML = list.map((e) => card(e, today)).join("");
+
+  const empty = document.querySelector("#eventEmpty");
+  empty.hidden = list.length > 0;
+  empty.innerHTML = EVENTS.length
+    ? "조건에 맞는 대회가 없습니다."
+    : "지금은 안내할 대회가 없습니다.<br>알고 계신 대회가 있으면 디스코드로 알려주세요.";
 }
 
 /** KST 기준 오늘 (YYYY-MM-DD) */

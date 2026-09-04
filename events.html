@@ -25,7 +25,7 @@
     <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
     <nav>
       <a href="index.html">랭킹</a>
-      <a href="teams.html">소속 랭킹</a>
+      <a href="teams.html">클럽</a>
       <a href="register.html">선수 등록</a>
       <a href="edit.html">정보 수정</a>
       <a href="pro.html">프로 지망 <span class="star">★</span></a>
@@ -41,20 +41,22 @@
       <p>충남 선수들이 나갈 수 있는 대회를 모아둡니다. 자세한 내용은 각 대회의 공식 안내를 확인하세요.</p>
     </div>
 
-    <div class="discord-bar" id="discordBar" hidden></div>
+    <div class="controls">
+      <input type="search" id="q" placeholder="대회 이름 · 주최 검색">
+      <select id="fGame"><option value="">전체 종목</option></select>
+      <select id="fState">
+        <option value="open">진행 중 · 예정</option>
+        <option value="running">진행 중만</option>
+        <option value="soon">예정만</option>
+        <option value="ended">종료</option>
+        <option value="">전체</option>
+      </select>
+    </div>
 
     <section class="card ev-box">
-      <h2>진행 중 · 예정</h2>
+      <h2>대회 <span id="count" style="font-weight:400; color:var(--text-dim)"></span></h2>
       <div id="eventList" class="ev-list"></div>
-      <p class="empty" id="eventEmpty" hidden>
-        지금은 안내할 대회가 없습니다.<br>
-        알고 계신 대회가 있으면 디스코드로 알려주세요.
-      </p>
-    </section>
-
-    <section class="card ev-box" id="pastBox" hidden>
-      <h2>지난 대회</h2>
-      <div id="pastList" class="ev-list past"></div>
+      <p class="empty" id="eventEmpty" hidden></p>
     </section>
 
     <p class="foot-note">
@@ -84,7 +86,6 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     renderEventsPage();
-    renderDiscord("#discordBar");
   });
 </script>
 </body>

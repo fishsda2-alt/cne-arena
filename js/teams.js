@@ -69,8 +69,8 @@ async function selectGame(game) {
   document.documentElement.style.setProperty("--accent", game.accent);
   document.documentElement.style.setProperty("--accent-hover", game.accentHover);
 
-  document.title = `소속·지역 랭킹 · ${game.short} — ${SITE.name}`;
-  $("#pageTitle").textContent = `소속·지역 랭킹 · ${game.short}`;
+  document.title = `클럽·지역 랭킹 · ${game.short} — ${SITE.name}`;
+  $("#pageTitle").textContent = `클럽·지역 랭킹 · ${game.short}`;
   $("#basis").textContent = game.basis;
   renderDiscord("#discordBar");
 
@@ -167,7 +167,7 @@ function cssEsc(s) {
 
 function render() {
   const isTeam = MODE === "team";
-  $("#thGroup").firstChild.nodeValue = isTeam ? "소속 " : "지역 ";
+  $("#thGroup").firstChild.nodeValue = isTeam ? "클럽 " : "지역 ";
 
   const list = groups();
   $("#count").textContent = `${list.length}곳`;
@@ -176,7 +176,7 @@ function render() {
     $("#tbody").innerHTML = "";
     $("#empty").textContent = ALL.length
       ? (isTeam
-        ? "아직 소속을 적은 선수가 없습니다. 등록할 때 학교·팀 이름을 넣으면 여기에 모입니다."
+        ? "아직 소속을 적은 선수가 없습니다. 등록할 때 학교·클럽·팀 이름을 넣으면 여기에 모입니다."
         : "아직 지역이 있는 선수가 없습니다.")
       : "아직 등록된 선수가 없습니다.";
     $("#empty").style.display = "block";
@@ -228,6 +228,6 @@ function render() {
   $("#note").textContent = [
     "평균은 랭크 배치를 마친 선수만으로 냅니다 — 언랭크를 0점으로 치면 신입을 많이 받은 곳이 밀려납니다.",
     "인원이 적으면 평균이 크게 흔들리니 인원 칸을 함께 보세요.",
-    noTeam ? `${isTeam ? "소속" : "지역"}을 적지 않은 선수 ${noTeam}명은 빠져 있습니다.` : "",
+    noTeam ? `${isTeam ? "클럽" : "지역"}을 적지 않은 선수 ${noTeam}명은 빠져 있습니다.` : "",
   ].filter(Boolean).join(" ");
 }

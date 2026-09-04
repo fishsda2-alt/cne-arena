@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>소속·지역 랭킹 — 충남 아마추어 랭킹</title>
+<title>클럽·지역 랭킹 — 충남 아마추어 랭킹</title>
 <meta name="description" content="학교·클럽 단위, 시·군 단위 순위입니다. 평균 티어와 인원, 대표 선수를 함께 봅니다.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CHUNGNAM RANK.GG">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:title" content="소속·지역 랭킹 — 충남 아마추어 랭킹">
+<meta property="og:title" content="클럽·지역 랭킹 — 충남 아마추어 랭킹">
 <meta property="og:description" content="학교·클럽 단위, 시·군 단위 순위입니다. 평균 티어와 인원, 대표 선수를 함께 봅니다.">
 <meta property="og:url" content="https://fishsda2-alt.github.io/cne-arena/teams.html">
 <meta property="og:image" content="https://fishsda2-alt.github.io/cne-arena/assets/og.png">
@@ -25,7 +25,7 @@
     <a class="logo" href="index.html">CHUNGNAM <span>RANK.GG</span></a>
     <nav>
       <a href="index.html">랭킹</a>
-      <a href="teams.html" class="active">소속 랭킹</a>
+      <a href="teams.html" class="active">클럽</a>
       <a href="register.html">선수 등록</a>
       <a href="edit.html">정보 수정</a>
       <a href="pro.html">프로 지망 <span class="star">★</span></a>
@@ -39,8 +39,8 @@
     <nav class="game-tabs" id="gameTabs" aria-label="종목 선택"></nav>
 
     <div class="page-title">
-      <h1 id="pageTitle">소속·지역 랭킹</h1>
-      <p id="pageDesc">학교·클럽과 시·군을 단위로 묶어 평균 티어순으로 보여줍니다.</p>
+      <h1 id="pageTitle">클럽·지역 랭킹</h1>
+      <p id="pageDesc">학교·클럽·팀과 시·군을 단위로 묶어 평균 티어순으로 보여줍니다.</p>
     </div>
 
     <section class="card notice-card" id="gameNotice" hidden>
@@ -52,7 +52,7 @@
       <div class="sample-bar" id="sampleBar" hidden>
         <div>
           <strong>예시 화면입니다.</strong>
-          아래 소속·지역은 <strong>실재하지 않는 가짜 데이터</strong>로,
+          아래 클럽·지역은 <strong>실재하지 않는 가짜 데이터</strong>로,
           선수가 모이면 어떤 모습인지 보여주기 위한 것입니다.
         </div>
         <a class="btn btn-sm" href="teams.html">실제 랭킹 보기</a>
@@ -61,7 +61,7 @@
       <div class="discord-bar" id="discordBar" hidden></div>
 
       <div class="tabs" id="modeTabs">
-        <button data-mode="team" class="active">소속</button>
+        <button data-mode="team" class="active">클럽</button>
         <button data-mode="region">지역</button>
       </div>
 
@@ -70,7 +70,7 @@
           <thead>
             <tr>
               <th class="rank-no">#</th>
-              <th id="thGroup">소속 <span id="count" style="font-weight:400"></span></th>
+              <th id="thGroup">클럽 <span id="count" style="font-weight:400"></span></th>
               <th>인원</th>
               <th>평균 티어</th>
               <th class="hide-sm">대표 선수</th>
