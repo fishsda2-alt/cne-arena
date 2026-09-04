@@ -25,6 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        with:
+          # 저장소에 Pages가 아직 안 켜져 있으면 이 워크플로가 직접 켭니다.
+          # (실패하면 Settings > Pages > Source 를 "GitHub Actions"로 직접 선택하세요)
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: "."
