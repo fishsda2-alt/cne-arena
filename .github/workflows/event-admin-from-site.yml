@@ -1,0 +1,63 @@
+name: 사이트 대회 승인
+
+# 운영 현황 페이지에서 대회 제보를 승인·거절하면 Apps Script가 깨웁니다.
+# 관리 키(ADMIN_KEY) 대조를 통과한 요청만 여기 도달합니다.
+on:
+  repository_dispatch:
+    types: [admin-event]
+
+concurrency:
+  group: ranking-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 처리
+        env:
+          IN_OP: ${{ github.event.client_payload.op }}
+          IN_ID: ${{ github.event.client_payload.id }}
+        run: |
+          set -o pipefail
+          case "$IN_OP" in
+            approve|reject) ;;
+            *) echo "받을 수 없는 작업입니다: $IN_OP" >&2; exit 1 ;;
+          esac
+          python scripts/events.py "$IN_OP" --id "$IN_ID" 2>&1 | tee /tmp/event-admin.txt
+
+      - name: 결과 요약
+        if: always()
+        run: |
+          {
+            echo "### 대회 승인 결과"
+            echo ""
+            echo '```'
+            cat /tmp/event-admin.txt 2>/dev/null || echo "(스크립트가 실행되기 전에 중단되었습니다)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/events.json
+          git diff --staged --quiet || git commit -m "chore: 대회 제보 승인/거절"
+          git push
+
+  deploy:
+    needs: admin
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

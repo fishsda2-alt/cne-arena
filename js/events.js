@@ -13,7 +13,9 @@ async function fetchEvents() {
     const res = await fetch(`data/events.json?t=${Date.now()}`);
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    return (data.events || []).filter((e) => e && e.name);
+    // 승인 대기(approved === false)는 화면에 내보내지 않습니다.
+    // approved 가 아예 없는 항목은 운영자가 손으로 적은 것이라 그대로 보입니다.
+    return (data.events || []).filter((e) => e && e.name && e.approved !== false);
   } catch (e) {
     return null;
   }
@@ -158,4 +160,104 @@ function renderDiscord(sel) {
     </div>
     <a class="btn btn-sm" href="${escEv(SITE.discordUrl)}" target="_blank" rel="noopener">디스코드 열기</a>`;
   box.hidden = false;
+}
+
+/* ───────── 대회 제보 ───────── */
+
+/**
+ * 제보는 아무나 보낼 수 있습니다. 확인할 대상이 없어 본인 인증을 걸 수 없기
+ * 때문에, 보낸 것은 **승인 대기로만 쌓이고 화면에 나오지 않습니다.**
+ * 여기서 거르는 것은 사람이 실수로 잘못 적는 경우까지이고,
+ * 실제 방어는 Apps Script(도배 제한)와 scripts/events.py(주소 검사)가 합니다.
+ */
+function setupEventForm() {
+  const form = document.querySelector("#evForm");
+  if (!form) return;
+
+  const games = typeof GAMES !== "undefined" ? GAMES : [];
+  document.querySelector("#eGame").innerHTML =
+    '<option value="">선택 안 함</option>' +
+    games.map((g) => `<option value="${escEv(g.id)}">${escEv(g.name)}</option>`).join("");
+
+  form.addEventListener("submit", submitEvent);
+}
+
+/** 눌렀을 때 코드가 실행되는 주소가 들어오지 않도록 https 만 받습니다 */
+function safeUrl(v) {
+  return !v || /^https:\/\/\S+$/i.test(v);
+}
+
+function evErr(id, show) {
+  document.querySelector(id).classList.toggle("show", show);
+  return !show;
+}
+
+async function submitEvent(e) {
+  e.preventDefault();
+  const $ = (s) => document.querySelector(s);
+  $("#evOk").classList.remove("show");
+  $("#evNg").classList.remove("show");
+
+  const data = {
+    action: "event",
+    name: $("#eName").value.trim(),
+    host: $("#eHost").value.trim(),
+    game: $("#eGame").value,
+    start: $("#eStart").value,
+    end: $("#eEnd").value,
+    applyBy: $("#eApply").value,
+    url: $("#eUrl").value.trim(),
+    poster: $("#ePoster").value.trim(),
+    note: $("#eNote").value.trim(),
+  };
+
+  let ok = true;
+  ok = evErr("#errName", !data.name) && ok;
+  ok = evErr("#errDate", !!(data.start && data.end && data.end < data.start)) && ok;
+  ok = evErr("#errUrl", !safeUrl(data.url)) && ok;
+  ok = evErr("#errPoster", !safeUrl(data.poster)) && ok;
+  if (!ok) {
+    document.querySelector("#evForm .err.show")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (!SITE.submitUrl) {
+    $("#evNg").classList.add("show");
+    $("#evNgMsg").innerHTML =
+      "지금은 폼으로 받을 수 없습니다. " +
+      (SITE.discordUrl
+        ? `<a href="${escEv(SITE.discordUrl)}" target="_blank" rel="noopener">디스코드</a>로 알려주세요.`
+        : "아래 이메일로 알려주세요.");
+    return;
+  }
+
+  const btn = $("#evSubmit");
+  btn.disabled = true;
+  btn.textContent = "보내는 중…";
+
+  try {
+    // Apps Script는 CORS 사전요청을 처리하지 못하므로 단순 요청(text/plain)으로 보냅니다.
+    const res = await fetch(SITE.submitUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data),
+    });
+    const out = await res.json().catch(() => ({}));
+
+    if (res.ok && out.ok) {
+      $("#evOk").classList.add("show");
+      $("#evOkMsg").textContent =
+        "고맙습니다. 운영자가 확인한 뒤 목록에 올립니다. 바로 뜨지는 않으니 조금 기다려 주세요.";
+      document.querySelector("#evForm").reset();
+    } else {
+      $("#evNg").classList.add("show");
+      $("#evNgMsg").textContent = out.error || "잠시 후 다시 시도해 주세요.";
+    }
+  } catch (err) {
+    $("#evNg").classList.add("show");
+    $("#evNgMsg").textContent = "서버에 연결하지 못했습니다.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "제보 보내기";
+  }
 }

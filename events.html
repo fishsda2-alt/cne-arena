@@ -59,6 +59,77 @@
       <p class="empty" id="eventEmpty" hidden></p>
     </section>
 
+    <section class="card" id="submitCard">
+      <h2>대회 제보하기</h2>
+      <p>
+        충남 선수들이 나갈 수 있는 대회를 알고 계신가요? 아래에 적어 보내주시면
+        운영자가 확인한 뒤 목록에 올립니다. <strong>바로 뜨지는 않습니다.</strong>
+      </p>
+
+      <form id="evForm" novalidate style="margin-top:14px">
+        <div class="field">
+          <label for="eName">대회 이름 <span class="req">필수</span></label>
+          <input type="text" id="eName" maxlength="60" autocomplete="off" placeholder="예: 제3회 충남 아마추어 리그">
+          <p class="err" id="errName">대회 이름을 입력해 주세요.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="eGame">종목</label>
+            <select id="eGame"><option value="">선택 안 함</option></select>
+          </div>
+          <div class="field">
+            <label for="eHost">주최</label>
+            <input type="text" id="eHost" maxlength="40" autocomplete="off" placeholder="예: OO협회">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="eStart">시작일</label>
+            <input type="date" id="eStart">
+          </div>
+          <div class="field">
+            <label for="eEnd">종료일</label>
+            <input type="date" id="eEnd">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="eApply">신청 마감일</label>
+          <input type="date" id="eApply">
+          <p class="err" id="errDate">종료일이 시작일보다 빠릅니다.</p>
+        </div>
+
+        <div class="field">
+          <label for="eUrl">접수·안내 링크 <span class="opt">https:// 로 시작하는 주소만</span></label>
+          <input type="url" id="eUrl" maxlength="300" autocomplete="off" placeholder="https://...">
+          <p class="err" id="errUrl">https:// 로 시작하는 주소를 넣어 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label for="ePoster">포스터 이미지 주소 <span class="opt">선택</span></label>
+          <input type="url" id="ePoster" maxlength="300" autocomplete="off" placeholder="https://...">
+          <p class="err" id="errPoster">https:// 로 시작하는 주소를 넣어 주세요.</p>
+        </div>
+
+        <div class="field">
+          <label for="eNote">한 줄 설명</label>
+          <input type="text" id="eNote" maxlength="120" autocomplete="off" placeholder="예: 5인 팀 단위, 온라인 예선 후 오프라인 결선">
+        </div>
+
+        <div class="notice">
+          <strong>포스터는 주최측 저작물입니다.</strong> 주최가 공개한 이미지 주소만 넣어 주세요.
+          파일 올리기는 받지 않습니다. 확실하지 않으면 비워두시고 접수 링크만 넣으셔도 충분합니다.
+        </div>
+
+        <button class="btn btn-lg" id="evSubmit" type="submit">제보 보내기</button>
+      </form>
+
+      <div class="result-box" id="evOk"><h3>보냈습니다</h3><p id="evOkMsg"></p></div>
+      <div class="result-box error" id="evNg"><h3>보내지 못했습니다</h3><p id="evNgMsg"></p></div>
+    </section>
+
     <p class="foot-note">
       대회 정보는 주최측 공지를 옮겨 적은 것입니다. 일정이 바뀔 수 있으니
       신청 전에 공식 안내를 꼭 확인하세요.
@@ -88,6 +159,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     renderEventsPage();
+    setupEventForm();
   });
 </script>
 </body>

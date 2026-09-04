@@ -75,6 +75,7 @@ cnrank/
 │   ├── self_edit.py         선수 본인 정보 수정 + 아이콘 재인증
 │   ├── self_remove.py       선수 본인 등록 삭제 (종목별/전체)
 │   ├── check_key.py         API 키 점검 (키 값은 출력하지 않음)
+│   ├── events.py            대회 제보 추가·승인·거절 (링크 안전성 검사)
 │   ├── check_parity.py      JS·Python 아이콘 번호 대조 (어긋나면 인증이 전부 실패)
 │   └── apps-script/
 │       └── register-proxy.gs  등록·수정 중계 (구글 Apps Script에 붙여넣는 코드)
@@ -91,6 +92,8 @@ cnrank/
 │   ├── edit-from-site.yml     사이트에서 들어온 정보 수정 (아이콘 재인증)
 │   ├── remove-from-site.yml   사이트에서 들어온 등록 삭제
 │   ├── admin-from-site.yml    운영 현황에서 들어온 ★·승인 처리
+│   ├── event-from-site.yml    대회 제보 접수 (승인 대기로 쌓임)
+│   ├── event-admin-from-site.yml  대회 승인·거절
 │   ├── add-player.yml         선수 등록 (수동 실행)
 │   ├── manage-player.yml      승인/보류/★/수정/삭제 (수동 실행)
 │   ├── check-key.yml          API 키 점검 (수동 실행)
@@ -176,8 +179,16 @@ git push -u origin main
 
 ### 대회를 올리려면
 
-`data/events.json` 의 `events` 에 한 칸 추가하면 **대회 안내** 페이지에 뜹니다.
-GitHub 웹에서 바로 고쳐도 됩니다.
+방법이 둘입니다.
+
+**① 방문자가 제보** — 대회 안내 페이지의 '대회 제보하기' 폼.
+아무나 보낼 수 있어서 **승인 대기로만 쌓이고 화면에는 안 나옵니다.**
+운영 현황(`?manage`)의 '대회 제보' 구간에서 관리 키로 승인해야 노출됩니다.
+선수 등록과 달리 대회 제보는 본인을 확인할 대상이 없어서, 그대로 두면 광고가 올라옵니다.
+
+**② 운영자가 직접** — `data/events.json` 의 `events` 에 한 칸 추가.
+GitHub 웹에서 바로 고쳐도 됩니다. 손으로 적은 항목은 `approved` 가 없으므로 바로 보입니다
+(`approved: true` 를 매번 쓰게 하면 잊습니다).
 
 ```json
 { "name": "OO컵 아마추어 대회", "host": "OO협회",
@@ -189,8 +200,10 @@ GitHub 웹에서 바로 고쳐도 됩니다.
   (상태를 '종료'나 '전체'로 바꾸면 다시 보입니다)
 - `game` 을 적으면 목록에 종목 표시가 붙습니다 (LoL / VALORANT).
 - `applyBy` 가 남아 있으면 "3일 남음"처럼 세어 줍니다.
-- **`poster` 는 주최측 허락을 받은 이미지만 넣으세요.** 포스터는 주최측 저작물입니다.
-  대회명·기간·주최·링크는 사실 정보라 그냥 적으셔도 됩니다.
+- **`poster` 는 이미지 주소만** 받습니다 (파일 올리기 없음). 포스터는 주최측 저작물이니
+  주최가 공개한 주소인지 승인할 때 확인하세요. 대회명·기간·주최·링크는 사실 정보라 자유롭습니다.
+- **`url`·`poster` 는 `https://` 로 시작해야 합니다.** `javascript:` 로 시작하는 주소는
+  눌렀을 때 코드가 실행되기 때문에 `scripts/events.py` 가 거부합니다.
 
 ### 팀 모집은 디스코드에서
 

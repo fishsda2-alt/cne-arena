@@ -7,6 +7,7 @@
  *   등록 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 등록 완료
  *   수정 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 수정 완료
  *   삭제 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 삭제 완료
+ *   대회 제보   → (이 스크립트) → GitHub Actions → 승인 대기로 쌓임
  *
  * ── 설치 방법 ─────────────────────────────────────────────
  * 1. https://script.google.com 에서 [새 프로젝트]
@@ -51,6 +52,8 @@ function doPost(e) {
     var isEdit = action === 'edit';
     var isRemove = action === 'remove';
     var isAdmin = action === 'admin';
+    var isEvent = action === 'event';            // 대회 제보 (누구나)
+    var isEventAdmin = action === 'event-admin'; // 대회 승인·거절 (관리 키 필요)
 
     // 종목 코드. 빈 값은 등록·수정에서는 롤, 삭제에서는 '전체 삭제'를 뜻합니다.
     var game = String(data.game || '').trim();
@@ -64,6 +67,8 @@ function doPost(e) {
     var clearTeam = data.clearTeam === true;   // 소속을 비우려는 신청 (빈 값 = '안 바꿈'과 구분)
 
     if (isAdmin) return handleAdmin(data);
+    if (isEvent) return handleEvent(data);
+    if (isEventAdmin) return handleEventAdmin(data);
 
     // ── 검증 ──
     if (!/^.+#.+$/.test(riotId)) return fail('Riot ID 형식이 올바르지 않습니다.');
@@ -140,6 +145,84 @@ function doPost(e) {
     console.error(err);
     return fail('처리 중 오류가 발생했습니다.');
   }
+}
+
+/**
+ * 대회 제보 — 아무나 보낼 수 있습니다.
+ *
+ * 확인할 대상이 없어서 본인 인증을 못 겁니다. 대신 GitHub 쪽에서 승인 대기
+ * 상태로만 쌓이고, 운영자가 승인해야 화면에 나옵니다. 여기서는 도배만 막습니다.
+ * 접수 링크가 안전한 주소인지는 scripts/events.py 가 다시 검사합니다.
+ */
+function handleEvent(data) {
+  var name = clean(String(data.name || '').trim());
+  if (!name) return fail('대회 이름을 입력해 주세요.');
+  if (name.length > 60) return fail('대회 이름은 60자 이내로 입력해 주세요.');
+
+  if (!withinDailyLimit()) {
+    return fail('오늘 접수 가능한 수를 넘었습니다. 내일 다시 시도해 주세요.');
+  }
+
+  var payload = {
+    name: name,
+    host: clean(String(data.host || '').trim()).slice(0, 40),
+    game: String(data.game || '').trim(),
+    start: String(data.start || '').trim(),
+    end: String(data.end || '').trim(),
+    applyBy: String(data.applyBy || '').trim(),
+    url: String(data.url || '').trim(),
+    poster: String(data.poster || '').trim(),
+    note: clean(String(data.note || '').trim()).slice(0, 120)
+  };
+
+  var sent = dispatch('submit-event', payload);
+  if (!sent) return fail('제보를 전달하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  console.log('대회 제보: ' + name);
+  return ok();
+}
+
+/** 대회 승인·거절 — 관리 키가 있어야 합니다 */
+function handleEventAdmin(data) {
+  var props = PropertiesService.getScriptProperties();
+  var expected = props.getProperty('ADMIN_KEY');
+  if (!expected) return fail('관리 키가 설정돼 있지 않습니다.');
+  if (!withinAdminTries()) return fail('시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.');
+  if (String(data.adminKey || '') !== expected) return fail('관리 키가 올바르지 않습니다.');
+
+  var op = String(data.op || '');
+  if (op !== 'approve' && op !== 'reject') return fail('처리할 수 없는 작업입니다.');
+  var id = String(data.id || '').trim();
+  if (!/^e\d{1,6}$/.test(id)) return fail('대상이 올바르지 않습니다.');
+
+  var sent = dispatch('admin-event', { op: op, id: id });
+  if (!sent) return fail('서버에 전달하지 못했습니다.');
+  console.log('대회 ' + op + ': ' + id);
+  return ok();
+}
+
+/** GitHub 워크플로 하나를 깨웁니다. 성공하면 true */
+function dispatch(eventType, payload) {
+  var props = PropertiesService.getScriptProperties();
+  var owner = props.getProperty('GITHUB_OWNER');
+  var repo = props.getProperty('GITHUB_REPO');
+  var token = props.getProperty('GITHUB_TOKEN');
+  if (!owner || !repo || !token) return false;
+
+  var res = UrlFetchApp.fetch(
+    'https://api.github.com/repos/' + owner + '/' + repo + '/dispatches',
+    {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
+      payload: JSON.stringify({ event_type: eventType, client_payload: payload }),
+      muteHttpExceptions: true
+    }
+  );
+  if (res.getResponseCode() !== 204) {
+    console.error('GitHub dispatch 실패: ' + res.getResponseCode() + ' ' + res.getContentText());
+    return false;
+  }
+  return true;
 }
 
 /**

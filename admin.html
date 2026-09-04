@@ -79,6 +79,16 @@
       <p class="copied" id="keyMsg"></p>
     </section>
 
+    <!-- ── 대회 제보 승인 (운영자 도구를 열었을 때만) ───── -->
+    <section class="card manage-only" id="eventQueue">
+      <h2>대회 제보 <span id="evCount" style="font-weight:400; color:var(--text-dim)"></span></h2>
+      <p>사이트에서 들어온 제보입니다. <strong>승인해야 대회 안내에 나옵니다.</strong>
+        접수 링크와 포스터를 눌러 확인한 뒤 처리하세요.</p>
+      <div id="evQueueList" class="ev-list" style="margin-top:12px"></div>
+      <div class="result-box" id="evAdminOk"><h3>처리했습니다</h3><p id="evAdminOkMsg"></p></div>
+      <div class="result-box error" id="evAdminNg"><h3>처리하지 못했습니다</h3><p id="evAdminNgMsg"></p></div>
+    </section>
+
     <!-- ── 명단 ──────────────────────────────────────────── -->
     <section class="card">
       <h2>등록 명단 <span id="count" style="font-weight:400; color:var(--text-dim)"></span></h2>

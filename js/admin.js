@@ -35,6 +35,7 @@ async function init() {
   }
 
   loadVisits();
+  loadEventQueue();
   await load();
 }
 
@@ -336,3 +337,105 @@ async function act(op, who, btn) {
 
 function show(sel) { $(sel).classList.add("show"); }
 function hide(sel) { $(sel).classList.remove("show"); }
+
+/* ───────── 대회 제보 승인 ───────── */
+
+/**
+ * 승인 대기 중인 대회를 보여줍니다.
+ *
+ * 제보는 아무나 보낼 수 있어서(확인할 대상이 없습니다) 그대로 두면 광고가
+ * 올라옵니다. 여기서 눈으로 보고 승인해야 대회 안내에 나옵니다.
+ * 접수 링크·포스터는 새 창으로 열어 확인하세요.
+ */
+async function loadEventQueue() {
+  const box = $("#eventQueue");
+  if (!box) return;
+
+  let events = [];
+  try {
+    const res = await fetch(`data/events.json?t=${Date.now()}`);
+    if (res.ok) events = (await res.json()).events || [];
+  } catch (e) {
+    return;
+  }
+
+  const waiting = events.filter((e) => e && e.approved === false);
+  $("#evCount").textContent = waiting.length ? `${waiting.length}건 대기` : "대기 없음";
+
+  if (!waiting.length) {
+    $("#evQueueList").innerHTML =
+      '<p style="color:var(--text-dim)">승인을 기다리는 제보가 없습니다.</p>';
+    return;
+  }
+
+  $("#evQueueList").innerHTML = waiting.map((e) => {
+    const g = gameById(e.game);
+    const period = [e.start, e.end].filter(Boolean).join(" ~ ") || "기간 미정";
+    const links = [
+      e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">접수 링크</a>` : "",
+      e.poster ? `<a href="${esc(e.poster)}" target="_blank" rel="noopener">포스터</a>` : "",
+    ].filter(Boolean).join(" · ");
+
+    return `<article class="ev">
+      <div class="ev-body">
+        <div class="ev-top">
+          <span class="chip warn">대기</span>${g ? `<span class="chip">${esc(g.short)}</span>` : ""}
+          <span class="ev-name">${esc(e.name)}</span>
+        </div>
+        <div class="ev-meta">${esc(period)}${e.host ? ` · ${esc(e.host)}` : ""}${
+          e.applyBy ? ` · 신청 마감 ${esc(e.applyBy)}` : ""}</div>
+        ${e.note ? `<div class="ev-note">${esc(e.note)}</div>` : ""}
+        ${links ? `<div class="ev-note">${links}</div>` : ""}
+        <div class="ev-foot">
+          <button class="btn btn-sm" data-ev="approve" data-id="${esc(e.id)}">승인</button>
+          <button class="btn btn-sm ghost" data-ev="reject" data-id="${esc(e.id)}">거절·삭제</button>
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+
+  $("#evQueueList").querySelectorAll("button[data-ev]").forEach((b) => {
+    b.addEventListener("click", () => actEvent(b.dataset.ev, b.dataset.id, b));
+  });
+}
+
+async function actEvent(op, id, btn) {
+  $("#evAdminOk").classList.remove("show");
+  $("#evAdminNg").classList.remove("show");
+
+  const key = readKey() || $("#fKey").value.trim();
+  if (!key) {
+    $("#evAdminNg").classList.add("show");
+    $("#evAdminNgMsg").textContent = "관리 키를 먼저 입력해 주세요.";
+    return;
+  }
+  const label = op === "approve" ? "승인" : "거절·삭제";
+  if (!confirm(`${label} 처리할까요?${op === "reject" ? " 되돌릴 수 없습니다." : ""}`)) return;
+
+  btn.disabled = true;
+  const before = btn.textContent;
+  btn.textContent = "처리 중…";
+
+  try {
+    const res = await fetch(SITE.submitUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "event-admin", op: op, id: id, adminKey: key }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (res.ok && out.ok) {
+      $("#evAdminOk").classList.add("show");
+      $("#evAdminOkMsg").textContent =
+        `${label} 접수했습니다. 1~2분 뒤 이 페이지를 새로고침하면 반영됩니다.`;
+    } else {
+      $("#evAdminNg").classList.add("show");
+      $("#evAdminNgMsg").textContent = out.error || "처리하지 못했습니다. 관리 키를 확인해 주세요.";
+    }
+  } catch (e) {
+    $("#evAdminNg").classList.add("show");
+    $("#evAdminNgMsg").textContent = "서버에 연결하지 못했습니다.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = before;
+  }
+}
