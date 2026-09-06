@@ -134,7 +134,9 @@ GitHub 토큰은 2027-06-30 만료 — 그때 재발급 후 Apps Script 속성�
 - 자동 커밋과 충돌하면 `git pull --rebase` 후 푸시.
 - 로컬 미리보기: `start-server.bat` → <http://localhost:8189>
   예시 데이터로 보려면 `?sample` 을 붙입니다.
-- 파이썬이 없는 환경일 수 있습니다. 그때는 스크립트 검증을 Actions에서 합니다.
+- 이 PC에는 Python 3.12 과 Node 24 가 설치돼 있습니다 (winget). 검증을 로컬에서 끝내세요.
+  다른 PC라면 없을 수 있고, 그때는 푸시해서 Actions가 대신 돌리게 하면 됩니다.
+  `python -m compileall -q scripts` 로 문법만 먼저 훑는 것도 빠릅니다.
 - 로컬 검증(파이썬이 있으면):
   `PYTHONUTF8=1 python scripts/check_parity.py` — 아이콘 번호 대조 + self_edit 자가 점검.
   `PYTHONUTF8=1`을 빼면 Windows 콘솔에서 한글이 깨집니다. 번호 대조에는 node도 필요합니다
