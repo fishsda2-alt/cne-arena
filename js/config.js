@@ -63,6 +63,25 @@ const VAL_TIERS = {
 };
 
 /**
+ * 스타크래프트: 리마스터 (선수 본인 등록)
+ *
+ * 블리자드가 SC:R 래더 정보를 외부에 열어 두지 않아 자동 수집이 불가능합니다.
+ * 선수가 래더 화면 스크린샷으로 확인해 올린 값을 그대로 씁니다 (scr.html).
+ * docs/starcraft-remastered-검토.md 참고.
+ */
+const SCR_RACES = ["테란", "저그", "프로토스", "랜덤"];
+const SCR_GRADES = {
+  S: { ko: "S", color: "#f4c874" },
+  A: { ko: "A", color: "#e8515a" },
+  B: { ko: "B", color: "#c471ed" },
+  C: { ko: "C", color: "#5b8dff" },
+  D: { ko: "D", color: "#2fbf8f" },
+  E: { ko: "E", color: "#9aa5bb" },
+  F: { ko: "F", color: "#b07a4f" },
+  U: { ko: "배치 전", color: "#5b6477" }
+};
+
+/**
  * 종목 목록 — 종목을 하나 늘리려면 여기에 한 칸을 추가하면 됩니다.
  * 화면(js/ranking.js)은 이 목록만 읽고 그리므로 HTML은 건드릴 필요가 없습니다.
  *
@@ -73,6 +92,11 @@ const VAL_TIERS = {
  * dataFile 은 종목마다 하나씩 둡니다. 티어 체계도 점수 환산도 종목마다 달라서
  * 한 파일에 합치면 오히려 복잡해집니다.
  * (롤만 이름에 종목이 없는 것은, 지금 돌고 있는 워크플로가 쓰는 경로라서입니다)
+ *
+ * selfReport: true — API 없이 선수가 직접 올린 값을 쓰는 종목.
+ *   랭킹표는 롤과 다른 줄 모양으로 그립니다(종족 글자, [본인 등록 / 날짜], 상세 창 없음).
+ *   롤 등록 페이지(register.html)의 종목 선택에는 나오지 않고, registerUrl 로 따로 받습니다.
+ * labels — 표 머리글·요약 카드 문구를 종목에 맞게 바꿀 때 (적지 않으면 롤 문구)
  */
 const GAMES = [
   {
@@ -120,6 +144,39 @@ const GAMES = [
     positions: VAL_POSITIONS,
     tiers: VAL_TIERS,
     unit: "RR"
+  },
+  {
+    id: "scr",
+    name: "스타크래프트",
+    short: "StarCraft",
+    accent: "#1e9e8c",
+    accentHover: "#27b8a3",
+    status: "live",
+    selfReport: true,
+    registerUrl: "scr.html",
+    basis: "선수 본인 등록 기준",
+    source: "래더 화면을 선수가 직접 확인해 올린 기록",
+    updateNote: "선수가 직접 등록할 때마다 반영",
+    legal: "StarCraft는 Blizzard Entertainment, Inc.의 상표 또는 등록상표입니다. 스타크래프트 기록은 Blizzard와 관련 없이 선수 본인이 올린 것입니다.",
+    description: "충남 스타크래프트: 리마스터 선수들이 래더 화면을 확인해 직접 올린 기록입니다. 지역 대회 팀 구성과 클럽 활동에 서로를 알아보는 용도입니다.",
+    dataFile: "data/ranking.scr.json",
+    sampleFile: "data/ranking.scr.sample.json",
+    positions: SCR_RACES,
+    tiers: SCR_GRADES,
+    unit: "레이팅",
+    labels: {
+      position: "종족",
+      tier: "등급",
+      allPosition: "전체 종족",
+      ranked: "등급 보유",
+      avg: "평균 레이팅",
+      sortTier: "레이팅순",
+      dist: "등급 분포",
+      search: "이름 · 게임 아이디 · 소속 검색"
+    },
+    avgLabel(score) {
+      return `레이팅 ${score}`;
+    }
   }
 ];
 

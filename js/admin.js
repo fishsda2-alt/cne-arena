@@ -16,8 +16,26 @@ let ALL = [];
 
 document.addEventListener("DOMContentLoaded", init);
 
+/**
+ * 본인 등록 종목(스타크래프트) 인원 — 그 선수들은 players.json 이 아니라
+ * 종목 파일(dataFile)에 따로 있으므로 종목별 막대만 거기서 셉니다.
+ */
+const SELF_COUNTS = {};
+
+async function loadSelfReportCounts() {
+  for (const g of GAMES.filter((x) => x.selfReport)) {
+    try {
+      const res = await fetch(`${g.dataFile}?t=${Date.now()}`);
+      SELF_COUNTS[g.id] = res.ok ? ((await res.json()).players || []).length : 0;
+    } catch (e) {
+      SELF_COUNTS[g.id] = 0;
+    }
+  }
+}
+
 async function init() {
-  fillSelect($("#fGame"), GAMES.map((g) => ({ v: g.id, t: g.name })), "전체 종목");
+  // 아래 명단은 players.json(롤·발로란트) 이라 본인 등록 종목은 거를 대상이 아닙니다.
+  fillSelect($("#fGame"), GAMES.filter((g) => !g.selfReport).map((g) => ({ v: g.id, t: g.name })), "전체 종목");
   fillSelect($("#fRegion"), REGIONS.map((r) => ({ v: r, t: r })), "전체 지역");
 
   ["#q", "#fGame", "#fRegion", "#fState"].forEach((sel) => {
@@ -152,6 +170,7 @@ async function load() {
     const data = await res.json();
     ALL = data.players || [];
     $("#updated").textContent = data.updatedAt ? `명단 갱신: ${fmtTime(data.updatedAt)}` : "";
+    await loadSelfReportCounts();
     summarize();
     render();
   } catch (e) {
@@ -171,7 +190,7 @@ function summarize() {
   // 종목별 — 한 선수가 여러 종목에 등록할 수 있어 합계가 총원보다 클 수 있습니다.
   drawBars("#byGame", GAMES.map((g) => ({
     label: g.name,
-    n: ALL.filter((p) => playerGames(p)[g.id]).length,
+    n: g.selfReport ? (SELF_COUNTS[g.id] || 0) : ALL.filter((p) => playerGames(p)[g.id]).length,
     color: g.accent,
   })));
 

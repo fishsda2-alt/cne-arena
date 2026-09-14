@@ -510,3 +510,73 @@ body:not(.manage) .manage-only { display: none !important; }
   .tier, .delta { white-space: normal; }
   .tier { gap: 5px; }
 }
+
+/* ══════════ 스타크래프트 (본인 등록 종목) ══════════ */
+
+/* 랭킹표 — 이름 옆 [본인 등록 / 09.14.] */
+.badge.self {
+  color: #7fd8c9; border-color: #1f5a52; background: rgba(30, 158, 140, .12);
+  white-space: nowrap;
+}
+/* 프로필 아이콘 자리에 종족 글자 */
+.player .race-chip {
+  width: 34px; height: 34px; border-radius: 8px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.95rem; color: #fff;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.race-chip.t { background: #2f5fb3; border-color: #3d6fc4; }
+.race-chip.z { background: #7a3fa0; border-color: #8c4eb3; }
+.race-chip.p { background: #9a7a2a; border-color: #b08c34; }
+.race-chip.r { background: #4a5263; border-color: #5b6477; }
+tbody tr.row-flash { animation: rowFlash 2.4s ease-out 1; }
+@keyframes rowFlash { 0%, 30% { background: rgba(30, 158, 140, .22); } 100% { background: transparent; } }
+
+/* 등록 페이지 — 스크린샷 올리기 */
+.shot-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 28px 16px; margin-top: 12px; text-align: center; cursor: pointer;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  background: var(--surface-2); color: var(--text-dim);
+  transition: border-color .15s, background .15s;
+}
+.shot-drop strong { color: var(--text); font-size: 1rem; }
+.shot-drop:hover, .shot-drop:focus, .shot-drop.over { border-color: var(--accent); outline: none; }
+.shot-drop.over { background: rgba(30, 158, 140, .08); }
+kbd {
+  display: inline-block; padding: 0 6px; border-radius: 4px; font-size: 0.8rem;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-family: inherit;
+}
+
+.ocr-status { margin-top: 14px; }
+.ocr-msg { font-size: 0.9rem; color: var(--text); margin-bottom: 6px; }
+.ocr-status.warn .ocr-msg { color: #ffb454; }
+.ocr-bar { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.ocr-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+
+.shot-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; margin-top: 14px; }
+.shot-preview {
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: auto;
+  background: #000; max-height: 460px;
+}
+.shot-preview img { display: block; width: 100%; height: auto; }
+
+.mark { font-size: 0.72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; margin-left: 4px; }
+.mark:empty { display: none; }
+.mark.auto { color: #7fd8c9; background: rgba(30, 158, 140, .14); }
+.mark.need { color: #ffb454; background: rgba(255, 180, 84, .12); }
+
+details.ocr-raw { margin-top: 12px; }
+details.ocr-raw summary { cursor: pointer; color: var(--text-dim); font-size: 0.88rem; }
+details.ocr-raw pre {
+  margin-top: 8px; padding: 12px; border-radius: 8px; max-height: 220px; overflow: auto;
+  background: var(--bg); border: 1px solid var(--border); color: var(--text-dim);
+  font-size: 0.8rem; white-space: pre-wrap; word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .shot-grid { grid-template-columns: 1fr; }
+  .shot-preview { max-height: 320px; }
+  .player .race-chip { width: 28px; height: 28px; font-size: 0.85rem; }
+}

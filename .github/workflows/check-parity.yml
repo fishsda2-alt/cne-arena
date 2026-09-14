@@ -6,6 +6,9 @@ name: 아이콘 번호 대조
 # 그 두 파일이 바뀔 때마다 자동으로 대조합니다. (API 키도, 비용도 들지 않습니다)
 # 함께 self_edit.py 의 값 정리·번호 계산도 한 번 굴려 봅니다 — 정규식이 깨져 있으면
 # 문법 검사로는 안 걸리고 신청이 실제로 들어와야 터지기 때문입니다.
+#
+# 스타크래프트 추려내기(js/scr-parse.js) 시험도 여기서 돌립니다. 인식한 글자에서 숫자를
+# 고르는 규칙이라, 고치다 틀리게 채우기 시작해도 화면에서는 티가 안 나기 때문입니다.
 on:
   push:
     paths:
@@ -13,6 +16,8 @@ on:
       - "scripts/riot.py"
       - "scripts/self_edit.py"
       - "scripts/check_parity.py"
+      - "js/scr-parse.js"
+      - "scripts/check_scr_parse.js"
   workflow_dispatch:
 
 jobs:
@@ -30,6 +35,12 @@ jobs:
           set -o pipefail
           python scripts/check_parity.py 2>&1 | tee /tmp/parity.txt
 
+      - name: 스타크래프트 추려내기 시험
+        if: always()
+        run: |
+          set -o pipefail
+          node scripts/check_scr_parse.js 2>&1 | tee /tmp/scr-parse.txt
+
       - name: 결과 요약
         if: always()
         run: |
@@ -38,5 +49,11 @@ jobs:
             echo ""
             echo '```'
             cat /tmp/parity.txt 2>/dev/null || echo "(검사가 실행되기 전에 중단되었습니다)"
+            echo '```'
+            echo ""
+            echo "### 스타크래프트 추려내기 시험"
+            echo ""
+            echo '```'
+            cat /tmp/scr-parse.txt 2>/dev/null || echo "(시험이 실행되기 전에 중단되었습니다)"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

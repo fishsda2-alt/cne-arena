@@ -72,6 +72,8 @@ async function selectGame(game) {
   document.title = `클럽·지역 랭킹 · ${game.short} — ${SITE.name}`;
   $("#pageTitle").textContent = `클럽·지역 랭킹 · ${game.short}`;
   $("#basis").textContent = game.basis;
+  // 스타크래프트처럼 API가 아닌 본인 등록 종목은 출처 문구가 다릅니다.
+  $("#source").textContent = game.source || "데이터 출처 Riot Games API";
   renderDiscord("#discordBar");
 
   const url = new URL(location.href);

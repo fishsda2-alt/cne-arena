@@ -12,6 +12,18 @@ let GAME = null;   // 지금 보고 있는 종목 (GAMES 의 한 칸)
 
 const $ = (sel) => document.querySelector(sel);
 
+/** 롤 화면 문구 — 종목이 config.js 의 labels 로 따로 적지 않으면 이 값을 씁니다 */
+const DEFAULT_LABELS = {
+  position: "포지션",
+  tier: "티어",
+  allPosition: "전체 포지션",
+  ranked: "랭크 배치",
+  avg: "평균 티어",
+  sortTier: "티어순",
+  dist: "티어 분포",
+  search: "이름 · 소환사명 · 소속 검색",
+};
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
@@ -113,14 +125,20 @@ async function selectGame(game, { replace = false } = {}) {
   $("#pageTitle").textContent = `${SITE.name} · ${game.short}`;
   $("#pageDesc").textContent = game.description;
   $("#basis").textContent = game.basis;
+  applyLabels(game);
 
   // 포지션 목록도 종목마다 다릅니다.
-  fillSelect($("#fPosition"), game.positions, "전체 포지션");
+  fillSelect($("#fPosition"), game.positions, labelOf(game, "allPosition"));
 
   // 자유랭크는 롤에만 있는 개념이라 다른 종목에서는 탭을 감춥니다.
   const hasFlex = game.id === "lol";
   document.querySelectorAll(".tabs .flex-only").forEach((b) => { b.hidden = !hasFlex; });
   if (!hasFlex && SORT === "flex") setSort("tier");
+
+  // 본인 등록 종목은 매일 쌓이는 기록이 없어 '주간 상승'을 낼 수 없습니다.
+  const self = !!game.selfReport;
+  document.querySelectorAll('.tabs [data-sort="weekly"]').forEach((b) => { b.hidden = self; });
+  if (self && SORT === "weekly") setSort("tier");
 
   // 주소에 남겨 두면 링크로 공유했을 때 같은 종목이 열립니다.
   const url = new URL(location.href);
@@ -128,6 +146,32 @@ async function selectGame(game, { replace = false } = {}) {
   history[replace ? "replaceState" : "pushState"]({}, "", url);
 
   await loadGame(game);
+}
+
+function labelOf(game, key) {
+  return (game.labels && game.labels[key]) || DEFAULT_LABELS[key];
+}
+
+/** 종목에 따라 바뀌는 문구 — 롤로 돌아오면 롤 문구로 되돌아가야 하므로 매번 전부 씁니다 */
+function applyLabels(game) {
+  const self = !!game.selfReport;
+  $("#thPosition").textContent = labelOf(game, "position");
+  $("#thTier").textContent = labelOf(game, "tier");
+  $("#kRanked").textContent = labelOf(game, "ranked");
+  $("#kAvg").textContent = labelOf(game, "avg");
+  $("#distTitle").textContent = labelOf(game, "dist");
+  $('.tabs [data-sort="tier"]').textContent = labelOf(game, "sortTier");
+  $("#q").placeholder = labelOf(game, "search");
+  $("#source").textContent = game.source || "데이터 출처 Riot Games API";
+  $("#gameLegal").textContent = game.legal || "";
+  $("#gameLegal").hidden = !game.legal;
+
+  // ★(프로 지망)은 롤 등록에만 있는 표시입니다.
+  $("#statPro").hidden = self;
+  $("#fPro").hidden = self;
+  if (self) $("#fPro").value = "";
+  $("#scrIntro").hidden = !self;
+  if (game.registerUrl) $("#scrIntroBtn").href = game.registerUrl;
 }
 
 async function loadGame(game) {
@@ -150,7 +194,8 @@ async function loadGame(game) {
     // 처음 온 사람이 실제 등록 선수로 오해합니다.
     $("#sampleBar").hidden = !wantSample;
     // 선수가 적을 때는 빈 표만 두지 않고 무슨 곳인지 먼저 설명합니다.
-    $("#introCard").hidden = wantSample || ALL.length >= 5;
+    // (본인 등록 종목은 롤 안내가 맞지 않아 그 종목 전용 안내(#scrIntro)를 씁니다)
+    $("#introCard").hidden = wantSample || ALL.length >= 5 || !!game.selfReport;
     fillSummary(data);
     drawDistribution();
     fillSelect($("#fTeam"), uniq(ALL.map((p) => p.team)), "전체 소속");
@@ -158,7 +203,8 @@ async function loadGame(game) {
     // 링크에 선수가 지정돼 있으면 그 선수를 열어 둡니다 (공유용).
     const asked = new URLSearchParams(location.search).get("player");
     const found = asked && ALL.find((p) => p.id === asked);
-    if (found) openPlayer(found);
+    // 본인 등록 종목은 변동 기록이 없어 상세 창 대신 그 줄을 짚어 줍니다.
+    if (found) game.selfReport ? flashRow(found.id) : openPlayer(found);
   } catch (e) {
     ALL = [];
     showTable();
@@ -211,7 +257,7 @@ function fillSummary(data) {
     avg === null || !GAME.avgLabel ? "-" : GAME.avgLabel(avg);
 
   $("#updated").textContent = data.updatedAt
-    ? `마지막 갱신: ${fmtTime(data.updatedAt)} (매일 오전 4시 자동 갱신)`
+    ? `마지막 갱신: ${fmtTime(data.updatedAt)} (${GAME.updateNote || "매일 오전 4시 자동 갱신"})`
     : "아직 갱신 기록이 없습니다.";
 }
 
@@ -223,7 +269,8 @@ function fillSummary(data) {
  */
 function drawDistribution() {
   const box = $("#distBox");
-  const ranked = ALL.filter((p) => p.tier && GAME.tiers[p.tier]);
+  // 점수가 없는 줄(스타크래프트 '배치 전' 등)은 분포에서 뺍니다. 롤은 티어가 있으면 점수도 있습니다.
+  const ranked = ALL.filter((p) => p.tier && GAME.tiers[p.tier] && p.score != null);
   if (ranked.length < 3) {
     box.hidden = true;
     return;
@@ -244,7 +291,7 @@ function drawDistribution() {
       <span class="bt"><span class="bf" style="width:${(i.n / max) * 100}%;background:${esc(i.color)}"></span></span>
       <span class="bn">${i.n}</span>
     </div>`).join("");
-  $("#distNote").textContent = `랭크 배치 ${ranked.length}명 기준`;
+  $("#distNote").textContent = `${labelOf(GAME, "ranked")} ${ranked.length}명 기준`;
   box.hidden = false;
 }
 
@@ -295,8 +342,9 @@ function render() {
   // tier: ranking.json이 이미 티어순으로 정렬되어 있음
 
   $("#count").textContent = `${rows.length}명`;
-  $("#thExtra").textContent =
-    SORT === "weekly" ? "주간 변동" : SORT === "games" ? "판수"
+  $("#thExtra").textContent = GAME.selfReport
+    ? (SORT === "games" ? "판수" : "래더 순위")
+    : SORT === "weekly" ? "주간 변동" : SORT === "games" ? "판수"
       : SORT === "flex" ? "솔로랭크" : "어제 대비";
 
   if (!rows.length) {
@@ -310,7 +358,7 @@ function render() {
     return;
   }
   $("#empty").style.display = "none";
-  $("#tbody").innerHTML = rows.map((p, i) => row(p, i)).join("");
+  $("#tbody").innerHTML = rows.map((p, i) => (GAME.selfReport ? rowSelf(p, i) : row(p, i))).join("");
   $("#tbody").querySelectorAll("tr[data-id]").forEach((tr) => {
     tr.addEventListener("click", () => {
       const p = ALL.find((x) => x.id === tr.dataset.id);
@@ -371,6 +419,78 @@ function row(p, i) {
     <td class="hide-sm wl"><span class="w">${p.wins || 0}승</span> <span class="l">${p.losses || 0}패</span></td>
     <td>${wr}</td>
   </tr>`;
+}
+
+/**
+ * 본인 등록 종목(스타크래프트)의 한 줄.
+ *
+ * 칸 순서는 롤 줄(row)과 같게 두고 내용만 바꿉니다 — 머리글·필터·클럽 페이지를 함께 쓰려고요.
+ *  · 프로필 아이콘 자리에 종족 글자 (T/Z/P/R)
+ *  · 이름 옆 [본인 등록 / MM.DD.] — 검증된 값이 아니라는 표시이자, 마지막으로 올린 날
+ *  · '어제 대비' 자리에 래더 순위 (몇 위)
+ *  · 누르면 여는 상세 창은 없습니다 (매일 쌓이는 변동 기록이 없음)
+ */
+const RACE_CHIP = { 테란: ["t", "T"], 저그: ["z", "Z"], 프로토스: ["p", "P"], 랜덤: ["r", "R"] };
+
+function rowSelf(p, i) {
+  const no = SORT === "tier" ? p.rank : i + 1;
+  const noClass = no === 1 ? "top1" : no === 2 ? "top2" : no === 3 ? "top3" : "";
+  const info = (p.tier && GAME.tiers[p.tier]) || null;
+  const [raceCls, raceLetter] = RACE_CHIP[p.position] || ["", "?"];
+
+  const tierCell = p.score != null && info
+    ? `<div class="tier"><span class="dot" style="background:${info.color}"></span>
+         <span>${esc(p.label)}</span></div>`
+    : `<div class="tier"><span class="dot" style="background:#444"></span>
+         <span style="color:var(--text-dim)">${esc(p.label || "배치 전")}</span></div>`;
+
+  const extra = SORT === "games"
+    ? `<span class="delta zero">${p.games || 0}판</span>`
+    : `<span class="delta zero">${p.ladderRank ? `${Number(p.ladderRank).toLocaleString("ko-KR")}위` : "-"}</span>`;
+
+  const record = p.games
+    ? `<span class="w">${p.wins || 0}승</span> <span class="l">${p.losses || 0}패</span>`
+    : `<span style="color:var(--text-dim)">-</span>`;
+
+  const wr = p.games
+    ? `<span class="wr ${p.winRate >= 55 ? "hi" : p.winRate < 45 ? "lo" : ""}">${p.winRate}%</span>`
+    : `<span class="wr" style="color:var(--text-dim)">-</span>`;
+
+  return `<tr data-row="${esc(p.id)}">
+    <td class="rank-no ${noClass}">${no ?? "-"}</td>
+    <td>
+      <div class="player">
+        <div class="race-chip ${raceCls}" title="${esc(p.position)}">${raceLetter}</div>
+        <div class="who">
+          <span class="nm">${esc(p.name)}${selfBadge(p)}</span>
+          <span class="id">${esc(p.gameName)}</span>
+        </div>
+      </div>
+    </td>
+    <td class="hide-sm">${esc(p.team) || "-"}</td>
+    <td class="hide-sm">${esc(p.position) || "-"}</td>
+    <td>${tierCell}</td>
+    <td>${extra}</td>
+    <td class="hide-sm wl">${record}</td>
+    <td>${wr}</td>
+  </tr>`;
+}
+
+/** [본인 등록 / 09.14.] */
+function selfBadge(p) {
+  const m = /^\d{4}-(\d{2})-(\d{2})/.exec(p.reportedAt || "");
+  const day = m ? ` / ${m[1]}.${m[2]}.` : "";
+  return `<span class="badge self" title="선수 본인이 래더 화면을 확인해 올린 기록입니다">본인 등록${day}</span>`;
+}
+
+/** 공유 링크로 들어온 선수의 줄을 잠깐 밝혀 줍니다 */
+function flashRow(id) {
+  const tr = [...document.querySelectorAll("#tbody tr[data-row]")].find((x) => x.dataset.row === id);
+  if (!tr) return;
+  tr.scrollIntoView({ behavior: "smooth", block: "center" });
+  tr.classList.remove("row-flash");
+  void tr.offsetWidth;  // 같은 줄을 다시 짚을 때도 효과가 나오도록
+  tr.classList.add("row-flash");
 }
 
 function deltaCell(v) {

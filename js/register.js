@@ -36,10 +36,14 @@ function init() {
   $("#regForm").addEventListener("submit", submit);
 }
 
-/** 종목 고르기 — GAMES 목록을 읽어 그립니다 (종목이 늘어도 여기는 그대로) */
+/**
+ * 종목 고르기 — GAMES 목록을 읽어 그립니다 (종목이 늘어도 여기는 그대로)
+ * 본인 등록 종목(스타크래프트)은 Riot 아이콘 인증을 쓰지 않아 여기서 받지 않습니다.
+ * 그 종목은 config.js 의 registerUrl 페이지에서 따로 등록합니다.
+ */
 function buildGamePick() {
   const wrap = $("#gamePick");
-  wrap.innerHTML = GAMES.map(
+  wrap.innerHTML = GAMES.filter((g) => !g.selfReport).map(
     (g) => `<button type="button" data-game="${g.id}">${g.name}</button>`
   ).join("");
   wrap.querySelectorAll("button").forEach((b) => {

@@ -82,16 +82,29 @@
       </section>
 
 
+      <!-- 본인 등록 종목(스타크래프트)일 때만 — 값의 성격과 어디서 올리는지 -->
+      <section class="card notice-card" id="scrIntro" hidden>
+        <h2>선수 본인이 올린 래더 기록입니다</h2>
+        <p>
+          스타크래프트: 리마스터는 블리자드가 래더 정보를 외부에 열어 두지 않아 자동으로 가져올 수 없습니다.
+          선수가 래더 화면 스크린샷을 보고 직접 확인해 올린 값이며,
+          이름 옆 <span class="badge self">본인 등록 / 날짜</span> 는 마지막으로 올린 날입니다.
+        </p>
+        <div class="btn-row">
+          <a class="btn" id="scrIntroBtn" href="scr.html">스타크래프트 등록 · 갱신하기</a>
+        </div>
+      </section>
+
     <section class="stats">
       <div class="stat"><div class="k">등록 선수</div><div class="v" id="sTotal">-</div></div>
-      <div class="stat"><div class="k">랭크 배치</div><div class="v" id="sRanked">-</div></div>
-      <div class="stat"><div class="k">평균 티어</div><div class="v small" id="sAvg">-</div></div>
-      <div class="stat"><div class="k">★ 프로 지망</div><div class="v" id="sPro">-</div></div>
+      <div class="stat"><div class="k" id="kRanked">랭크 배치</div><div class="v" id="sRanked">-</div></div>
+      <div class="stat"><div class="k" id="kAvg">평균 티어</div><div class="v small" id="sAvg">-</div></div>
+      <div class="stat" id="statPro"><div class="k">★ 프로 지망</div><div class="v" id="sPro">-</div></div>
       <div class="stat"><div class="k">1위</div><div class="v small" id="sTop">-</div></div>
     </section>
 
     <section class="card dist" id="distBox" hidden>
-      <h2>티어 분포 <span id="distNote"></span></h2>
+      <h2><span id="distTitle">티어 분포</span> <span id="distNote"></span></h2>
       <div id="dist" class="bars"></div>
     </section>
 
@@ -121,8 +134,8 @@
             <th class="rank-no">#</th>
             <th>선수 <span id="count" style="font-weight:400"></span></th>
             <th class="hide-sm">소속</th>
-            <th class="hide-sm">포지션</th>
-            <th>티어</th>
+            <th class="hide-sm" id="thPosition">포지션</th>
+            <th id="thTier">티어</th>
             <th id="thExtra">어제 대비</th>
             <th class="hide-sm">전적</th>
             <th>승률</th>
@@ -163,12 +176,13 @@
 
 <footer class="site-footer">
   <div class="container">
-    <p><span id="basis">솔로랭크 기준</span> · 데이터 출처 Riot Games API</p>
+    <p><span id="basis">솔로랭크 기준</span> · <span id="source">데이터 출처 Riot Games API</span></p>
     <p style="margin-top:6px">
       이 사이트는 Riot Games의 승인을 받지 않았으며, Riot Games 또는 Riot Games 자산의
       제작·관리에 공식적으로 관여한 모든 이들의 견해나 의견을 반영하지 않습니다.
       Riot Games와 관련 자산은 Riot Games, Inc.의 상표 또는 등록상표입니다.
     </p>
+    <p style="margin-top:6px" id="gameLegal" hidden></p>
     <p class="footer-contact" id="footerContact"></p>
     <p style="margin-top:14px">
       <a class="brand-btn" href="admin.html">CHUNGNAM <span>RANK.GG</span></a>

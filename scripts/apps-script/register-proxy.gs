@@ -8,6 +8,7 @@
  *   수정 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 수정 완료
  *   삭제 페이지 → (이 스크립트) → GitHub Actions → 아이콘 인증 → 삭제 완료
  *   대회 제보   → (이 스크립트) → GitHub Actions → 승인 대기로 쌓임
+ *   스타 등록   → (이 스크립트) → GitHub Actions → 본인 확인 값 그대로 반영 (인증 없음)
  *
  * ── 설치 방법 ─────────────────────────────────────────────
  * 1. https://script.google.com 에서 [새 프로젝트]
@@ -54,6 +55,7 @@ function doPost(e) {
     var isAdmin = action === 'admin';
     var isEvent = action === 'event';            // 대회 제보 (누구나)
     var isEventAdmin = action === 'event-admin'; // 대회 승인·거절 (관리 키 필요)
+    var isScr = action === 'scr';                // 스타크래프트 본인 등록 (Riot ID 없음)
 
     // 종목 코드. 빈 값은 등록·수정에서는 롤, 삭제에서는 '전체 삭제'를 뜻합니다.
     var game = String(data.game || '').trim();
@@ -69,6 +71,7 @@ function doPost(e) {
     if (isAdmin) return handleAdmin(data);
     if (isEvent) return handleEvent(data);
     if (isEventAdmin) return handleEventAdmin(data);
+    if (isScr) return handleScr(data);
 
     // ── 검증 ──
     if (!/^.+#.+$/.test(riotId)) return fail('Riot ID 형식이 올바르지 않습니다.');
@@ -197,6 +200,56 @@ function handleEventAdmin(data) {
   var sent = dispatch('admin-event', { op: op, id: id });
   if (!sent) return fail('서버에 전달하지 못했습니다.');
   console.log('대회 ' + op + ': ' + id);
+  return ok();
+}
+
+/**
+ * 스타크래프트: 리마스터 본인 등록 — Riot ID가 없습니다.
+ *
+ * 블리자드 공식 API가 없어 값을 검증할 수 없습니다. 선수가 scr.html 에서
+ * 스크린샷과 대조해 확인한 숫자만 받고, 랭킹에는 [본인 등록 / 날짜] 로 표시됩니다.
+ * 스크린샷 파일은 여기로 오지 않습니다. 여기서는 형식만 막고,
+ * 지역·종족 목록 같은 최종 검사는 scripts/scr_report.py 가 합니다.
+ */
+function handleScr(data) {
+  var scrId = clean(String(data.scrId || '').trim());
+  var nickname = clean(String(data.nickname || '').trim());
+  if (!scrId) return fail('게임 아이디를 입력해 주세요.');
+  if (scrId.length > 24) return fail('게임 아이디가 너무 깁니다.');
+  if (!nickname) return fail('표시 닉네임을 입력해 주세요.');
+  if (nickname.length > 20) return fail('닉네임은 20자 이내로 입력해 주세요.');
+
+  var grade = String(data.grade || '').trim().toUpperCase();
+  if (!/^[SABCDEFU]$/.test(grade)) return fail('등급을 골라 주세요.');
+
+  var nums = {};
+  var fields = ['rating', 'wins', 'losses', 'ladderRank'];
+  for (var i = 0; i < fields.length; i++) {
+    var raw = data[fields[i]];
+    var v = String(raw === undefined || raw === null ? '' : raw).replace(/,/g, '').trim();
+    if (v && !/^\d{1,8}$/.test(v)) return fail('숫자 칸에 숫자가 아닌 값이 있습니다.');
+    nums[fields[i]] = v;
+  }
+  if (grade !== 'U' && !nums.rating) return fail('레이팅을 입력해 주세요.');
+
+  if (!withinDailyLimit()) {
+    return fail('오늘 접수 가능한 신청 수를 넘었습니다. 내일 다시 시도해 주세요.');
+  }
+
+  var sent = dispatch('scr-report', {
+    scrId: scrId,
+    nickname: nickname,
+    region: clean(String(data.region || '').trim()).slice(0, 10),
+    race: clean(String(data.race || '').trim()).slice(0, 10),
+    team: clean(String(data.team || '').trim()).slice(0, 30),
+    grade: grade,
+    rating: nums.rating,
+    wins: nums.wins,
+    losses: nums.losses,
+    ladderRank: nums.ladderRank
+  });
+  if (!sent) return fail('등록 서버에 전달하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  logSubmission('스타크래프트 등록', scrId, nickname);
   return ok();
 }
 

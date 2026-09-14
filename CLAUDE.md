@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-충남 지역 아마추어 LoL 선수 랭킹 사이트. 서버·DB 없이 GitHub Actions + GitHub Pages로만 돌아갑니다.
+충남 지역 아마추어 e스포츠 선수 랭킹 사이트 (롤 · 발로란트(준비 중) · 스타크래프트).
+서버·DB 없이 GitHub Actions + GitHub Pages로만 돌아갑니다.
 사람 손이 필요한 일은 전부 Actions 탭의 버튼으로 처리하도록 설계돼 있습니다.
 
 - 공개 사이트: <https://fishsda2-alt.github.io/cne-arena/>
@@ -19,6 +20,11 @@
 
 삭제 폼(remove.html) → Google Apps Script → repository_dispatch
   → remove-from-site.yml → 아이콘 인증(삭제용 번호) → 명단·랭킹·기록에서 제거
+
+스타크래프트 등록(scr.html) → 브라우저 안에서 스크린샷 글자 인식(tesseract.js)
+  → js/scr-parse.js 가 칸을 채움 → 선수가 스크린샷과 대조·확인
+  → Google Apps Script(action 'scr') → repository_dispatch 'scr-report'
+  → scr-from-site.yml → scr_report.py → ranking.scr.json 커밋 → Pages 배포
 ```
 
 - `data/players.json` — 등록 선수 명단(운영자가 직접 고치지 않음, 워크플로가 관리)
@@ -28,6 +34,9 @@
 - `data/ranking.json` — 롤 랭킹. 매일 04:10 KST 재생성
   (종목마다 파일이 하나씩입니다. 롤만 이름에 종목이 없는 것은 워크플로가 쓰는 경로라서)
 - `data/history/YYYY-MM.json` — 일별 스냅샷(주간 LP 상승폭 계산용)
+- `data/ranking.scr.json` — 스타크래프트. **선수 본인이 올린 값**(블리자드 공식 API 없음, 검증 불가).
+  `players.json`과 섞지 않습니다 — `update_ranking.py`가 그 명단을 매일 Riot API로 조회하기 때문입니다.
+  같은 게임 아이디(대소문자 무시)로 다시 올리면 덮어씁니다. 결정 배경은 `docs/starcraft-remastered-검토.md`.
 - `scripts/` — 외부 패키지 0개, 표준 라이브러리만 사용
 - `admin.html` — 운영 현황. 푸터의 CHUNGNAM RANK.GG 버튼으로 들어갑니다.
   **누구나 열 수 있습니다**(정적 사이트라 감출 수 없음). 보이는 값은 이미 공개된 것뿐이고,
@@ -44,7 +53,9 @@
 Riot 제품 URL 두 개와 `riot.txt`, CLAUDE.md 상단 주소도 함께)
 
 - `scripts/apps-script/register-proxy.gs` — 구글 Apps Script에 붙여넣는 중계 코드
-  (등록·수정 둘 다 여기를 지납니다. 고친 뒤 **배포 관리 → 새 버전**으로 다시 배포해야 반영됩니다)
+  (등록·수정·삭제·대회·스타크래프트가 모두 여기를 지납니다. 고친 뒤 **배포 관리 → 새 버전**으로
+  다시 배포해야 반영됩니다. 안 하면 새 분기가 없는 옛 코드가 계속 돌아, 스타크래프트 신청이
+  "Riot ID 형식이 올바르지 않습니다"로 거절됩니다)
 
 ## 반드시 지킬 것 (실제로 겪은 함정)
 
@@ -56,7 +67,8 @@ Riot 게이트웨이가 이를 인증 헤더로 인정하지 않고 **403**을 �
 **데이터를 커밋하는 워크플로는 반드시 끝에 Pages 배포를 호출할 것.**
 GitHub은 `GITHUB_TOKEN`으로 만든 커밋으로는 다른 워크플로를 실행시키지 않습니다.
 그래서 push 트리거만 걸어두면 저장소만 갱신되고 **사이트는 영영 옛 파일을 내보냅니다.**
-`deploy-pages.yml`이 `workflow_call`을 받도록 돼 있고, 데이터 워크플로 5개가 이를 호출합니다.
+`deploy-pages.yml`이 `workflow_call`을 받도록 돼 있고, 데이터를 커밋하는 워크플로가 모두 이를 호출합니다.
+새 워크플로를 만들 때도 끝에 `deploy` 잡을 붙이세요 (`scr-from-site.yml` 참고).
 배포 시 기본 브랜치 최신을 다시 체크아웃해야 방금 커밋한 내용이 반영됩니다.
 
 **워크플로를 고친 뒤에는 `Re-run jobs`로 확인하지 말 것.**
@@ -107,6 +119,22 @@ GitHub은 `GITHUB_TOKEN`으로 만든 커밋으로는 다른 워크플로를 실
 **예시 화면에는 가짜 데이터라는 배너가 반드시 보여야 합니다** — 표시가 없으면
 그 화면이야말로 조작으로 오해받습니다.
 
+**스타크래프트(`selfReport` 종목)를 고칠 때 롤 줄 그리기를 건드리지 말 것.**
+`js/ranking.js`는 `GAME.selfReport`면 `rowSelf()`, 아니면 기존 `row()`로 그립니다.
+머리글·요약 카드 문구는 `applyLabels()`가 종목마다 **전부 다시 씁니다** — 일부만 쓰면
+스타크래프트를 보다 롤로 돌아왔을 때 스타 문구가 남습니다. 문구를 늘리면
+`DEFAULT_LABELS`(롤 문구)와 `config.js` 의 `labels` 양쪽에 넣으세요.
+롤 화면이 안 바뀌었는지는 수정 전후 `index.html?game=lol&sample` 의 표 HTML을 해시로 비교해 확인했습니다.
+
+**스타크래프트 글자 인식을 검증으로 쓰지 말 것.**
+인식은 이미지 속 숫자를 읽을 뿐이라 그림판으로 고친 숫자도 통과합니다. 입력 보조일 뿐이고,
+새로 읽을 때마다 "스크린샷과 같은지 확인했습니다" 체크를 풀어 다시 대조하게 하는 동작을 유지하세요.
+**스크린샷 파일을 서버·저장소로 보내게 바꾸지 마세요** — 래더 화면에 배틀태그·친구 목록 같은
+다른 사람 정보가 찍힙니다. 인식은 선수 브라우저 안에서 끝나야 합니다.
+스타크래프트 기록은 **본인 인증이 없습니다**(게임 아이디만 알면 덮어쓰기 가능). 지역 대회 팀 구성·
+클럽 활동용이라 받아들인 결정입니다. 잘못된 기록은 Actions → 스타크래프트 본인 등록 → Run workflow 로 지웁니다.
+추출기(`js/scr-parse.js`)를 고치면 `node scripts/check_scr_parse.js` — 틀리게 채우는 게 비워 두는 것보다 나쁩니다.
+
 **개인정보를 저장소에 넣지 말 것.**
 저장소도 Actions 실행 기록도 전부 공개됩니다. 실명·연락처·이메일·생년월일은
 구글 드라이브의 비공개 명단에만 두고, 저장소에는 `proAspirant` 플래그(★)만 둡니다.
@@ -141,6 +169,10 @@ GitHub 토큰은 2027-06-30 만료 — 그때 재발급 후 Apps Script 속성�
   `PYTHONUTF8=1 python scripts/check_parity.py` — 아이콘 번호 대조 + self_edit 자가 점검.
   `PYTHONUTF8=1`을 빼면 Windows 콘솔에서 한글이 깨집니다. 번호 대조에는 node도 필요합니다
   (없으면 자가 점검만 하고 안내를 냅니다). 없어도 푸시하면 Actions가 대신 돌립니다.
+- 스타크래프트: `node scripts/check_scr_parse.js` (추출기 시험),
+  `PYTHONUTF8=1 python scripts/scr_report.py --scr-id … --grade B --rating 1856 …` (반영 시험).
+  반영 시험은 `data/ranking.scr.json`을 실제로 고치므로 끝나면 `git checkout -- data/ranking.scr.json`.
+  예시 화면은 `index.html?game=scr&sample` (가짜 데이터: `data/ranking.scr.sample.json`).
 - `self_edit.py`·`manage_player.py`는 `--skip-verify`로 API 키 없이 시험할 수 있습니다.
   data/를 실제로 고치므로 끝나면 `git checkout -- data/` 로 되돌리세요.
 - `.gs`·`.ps1`·`.bat`은 CRLF로 유지 (메모장에서 한 줄로 보이는 문제 방지).
